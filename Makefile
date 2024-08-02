@@ -1,7 +1,7 @@
 NAME	= ircserv
 CC		= c++
 CFLAGS	= -Wall -Wextra -Werror -std=c++98
-SRCS	= main.cpp RPN.cpp
+SRCS	= main.cpp server.cpp
 OBJS    = $(SRCS:.cpp=.o)
 GREEN	= \033[0;32m
 RED		= \033[0;31m
