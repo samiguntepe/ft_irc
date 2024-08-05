@@ -24,26 +24,27 @@ void Server::arg_control(char **argv)
 
 void	Server::create_socket()
 {
-	this->socket_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (this->socket_fd < 0)
+	this->server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (this->server_fd < 0)
 		throw RuntimeError("Socket creation failed.");
 
-	std::memset(&socket_feature, 0, sizeof(socket_feature));
-	socket_feature.sin_family = AF_INET;
-	socket_feature.sin_port = htons(port_number);
-	socket_feature.sin_addr.s_addr = inet_addr("127.0.0.1");
+	std::memset(&server_address, 0, sizeof(server_address));
+	server_address.sin_family = AF_INET;
+	server_address.sin_port = htons(port_number);
+	server_address.sin_addr.s_addr = inet_addr("127.0.0.1");
+	this->addr_len = sizeof(server_address);
 }
 
 void Server::bind_listen_socket()
 {
-	if (bind(this->socket_fd, (struct sockaddr *)&socket_feature, sizeof(socket_feature)) < 0)
+	if (bind(this->server_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
 	{
-		close(this->socket_fd);
+		close(this->server_fd);
 		throw RuntimeError("Bind failed.");
 	}
-	if (listen(this->socket_fd, 42) < 0)
+	if (listen(this->server_fd, 42) < 0)
 	{
-		close(this->socket_fd);
+		close(this->server_fd);
 		throw RuntimeError("Listen failed.");
 	}
 	std::cout << "Waiting for connections..." << std::endl;
@@ -51,88 +52,52 @@ void Server::bind_listen_socket()
 
 void Server::accept_select_socket()
 {
-	sockaddr_in client_addr;
-	socklen_t client_len = sizeof(client_addr);
-	char buff[1024];
+	int new_socket;
 	fd_set read_fds;
-	std::vector<int> client_fds;
+	FD_ZERO(&read_fds);
+	FD_SET(server_fd, &read_fds);
+	int max_fd = server_fd;
 
-	while (true)
-	{
-		int client_fd = accept(socket_fd, (struct sockaddr *)&client_addr, &client_len);
-		if (client_fd < 0)
-		{
-			close(socket_fd);
-			throw RuntimeError("Accept failed.");
-		}
+	while (1) {
+    fd_set temp_fds = read_fds;
 
-		std::cout << "\nClient number " << client_fd << " connected." << std::endl;
-		client_fds.push_back(client_fd);
+    int activity = select(max_fd + 1, &temp_fds, NULL, NULL, NULL);
 
-		while (true)
-		{
-			FD_ZERO(&read_fds);
-			FD_SET(socket_fd, &read_fds);
-			int max_fd = socket_fd;
+    if (activity < 0) {
+        perror("select error");
+    }
 
-			for (std::vector<int>::iterator it = client_fds.begin(); it != client_fds.end(); ++it)
-			{
-				int fd = *it;
-				FD_SET(fd, &read_fds);
-				if (fd > max_fd)
-				{
-					max_fd = fd;
-				}
-			}
+    if (FD_ISSET(server_fd, &temp_fds)) {
+        new_socket = accept(server_fd, (struct sockaddr *)&server_address, (socklen_t*)&addr_len);
+        if (new_socket < 0) {
+            throw RuntimeError("Accept failed.");
+        }
 
-			int activity = select(max_fd + 1, &read_fds, 0, 0, 0);
+        FD_SET(new_socket, &read_fds);
+        if (new_socket > max_fd) {
+            max_fd = new_socket;
+        }
+    }
 
-			if (activity < 0)
-				throw RuntimeError("Select failed.");
+    for (int i = 0; i <= max_fd; i++) {
+        if (FD_ISSET(i, &temp_fds)) {
+            if (i != server_fd) {
+                char buffer[1024];
+                int valread = read(i, buffer, 1024);
+                if (valread == 0) {
+                    close(i);
+                    FD_CLR(i, &read_fds);
+                } else {
+                    buffer[valread] = '\0';
+					
+                }
+            }
+        }
+    }
+}
 
-			if (FD_ISSET(socket_fd, &read_fds))
-			{
-				int new_client_fd = accept(socket_fd, (struct sockaddr *)&client_addr, &client_len);
-				if (new_client_fd < 0)
-				{
-					std::cout << "Accept failed." << std::endl;
-					continue;
-				}
-				std::cout << "\nClient number " << new_client_fd << " connected.\n" << std::endl;
-				client_fds.push_back(new_client_fd);
-			}
 
-			for (std::vector<int>::iterator it = client_fds.begin(); it != client_fds.end();)
-			{
-				int fd = *it;
-				if (FD_ISSET(fd, &read_fds))
-				{
-					ssize_t bytes_received = recv(fd, buff, sizeof(buff), 0);
-					if (bytes_received > 0)
-					{
-						buff[bytes_received] = '\0';
-						std::cout << "Client number " << *it << " message: " << buff << std::endl;
-					}
-					else
-					{
-						if (bytes_received == 0)
-						{
-							std::cout << "Client number " << *it << " disconnected\n" << std::endl;
-						}
-						else
-						{
-							std::cout << "Receive failed." << std::endl;
-						}
-						close(fd);
-						it = client_fds.erase(it);
-						continue;
-					}
-				}
-				++it;
-			}
-		}
-	}
-	close(this->socket_fd);
+
 }
 	
 
@@ -166,7 +131,7 @@ class RuntimeError : public std::exception {
 class Server
 {
 	private:
-		int socket_fd;
+		int server_fd;
 		// Diğer üyeler...
 
 	public:
