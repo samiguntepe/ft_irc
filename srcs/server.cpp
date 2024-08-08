@@ -1,4 +1,5 @@
-#include "server.hpp"
+#include "../includes/Server.hpp"
+#include "../includes/Channel.hpp"
 
 void Server::run()
 {
@@ -59,18 +60,20 @@ void Server::accept_select_socket()
 	int max_fd = server_fd;
 
 	while (1) {
-    fd_set temp_fds = read_fds;
+    fd_set temp_read_fds = read_fds;
 
-    int activity = select(max_fd + 1, &temp_fds, NULL, NULL, NULL);
+    int activity = select(max_fd + 1, &temp_read_fds, NULL, NULL, NULL);
 
     if (activity < 0) {
-        perror("select error");
+		throw RuntimeError("Select is failed.");
     }
 
-    if (FD_ISSET(server_fd, &temp_fds)) {
+    if (FD_ISSET(server_fd, &temp_read_fds)) {
         new_socket = accept(server_fd, (struct sockaddr *)&server_address, (socklen_t*)&addr_len);
+		new_client(new_socket);
+
         if (new_socket < 0) {
-            throw RuntimeError("Accept failed.");
+            throw RuntimeError("Accept is failed.");
         }
 
         FD_SET(new_socket, &read_fds);
@@ -79,27 +82,37 @@ void Server::accept_select_socket()
         }
     }
 
-    for (int i = 0; i <= max_fd; i++) {
-        if (FD_ISSET(i, &temp_fds)) {
+    for (std::vector<Client >::iterator it = clients.begin(); it != clients.end();) {
+		int fd = 
+        if (FD_ISSET(clients, &temp_read_fds)) {
             if (i != server_fd) {
                 char buffer[1024];
-                int valread = read(i, buffer, 1024);
-                if (valread == 0) {
+				int bytes_received = recv(i, buffer, sizeof(buffer), 0);
+
+
+
+                if (bytes_received == 0) {
                     close(i);
                     FD_CLR(i, &read_fds);
                 } else {
-                    buffer[valread] = '\0';
+                    buffer[bytes_received] = '\0';
 					
-                }
-            }
-        }
-    }
+                	}
+            	}
+       		}
+    	}
+	}
 }
 
+void Server::new_client(int fd)
+{
+	Client client_obj;
 
+	client_obj.set_cli_fd(fd);
 
-}
-	
+	Server::clients.push_back(&client_obj);
+
+}	
 
 #ifndef SERVER_HPP
 #define SERVER_HPP

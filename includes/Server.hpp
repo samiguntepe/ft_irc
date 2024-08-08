@@ -10,6 +10,10 @@
 #include <vector>
 #include <exception>
 #include <string>
+#include <map>
+
+#include "../includes/Channel.hpp"
+#include "../includes/Client.hpp"
 
 
 #define GET_CURRENT_TIME time(0)
@@ -80,12 +84,17 @@ class Server
 		int port_number;
 		sockaddr_in server_address;
 		int addr_len;
+		std::map<std::string, Channel*> channels;
+		std::vector<Client *> clients;
+
 	public:
 		void arg_control(char **argv);
 		void create_socket();
 		void bind_listen_socket();
 		void accept_select_socket();
 		void run();
+		void new_client(int);
+
 };
 
 #endif
