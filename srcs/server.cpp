@@ -71,6 +71,7 @@ void Server::accept_select_socket()
     if (FD_ISSET(server_fd, &temp_read_fds)) {
         new_socket = accept(server_fd, (struct sockaddr *)&server_address, (socklen_t*)&addr_len);
 		new_client(new_socket);
+		std::cout << "New connection, socket fd is " << new_socket << "\nIP Address: " << inet_ntoa(server_address.sin_addr) << std::endl;
 
         if (new_socket < 0) {
             throw RuntimeError("Accept is failed.");
@@ -82,36 +83,37 @@ void Server::accept_select_socket()
         }
     }
 
-    for (std::vector<Client >::iterator it = clients.begin(); it != clients.end();) {
-		int fd = 
-        if (FD_ISSET(clients, &temp_read_fds)) {
-            if (i != server_fd) {
-                char buffer[1024];
-				int bytes_received = recv(i, buffer, sizeof(buffer), 0);
-
-
-
-                if (bytes_received == 0) {
-                    close(i);
-                    FD_CLR(i, &read_fds);
-                } else {
-                    buffer[bytes_received] = '\0';
-					
-                	}
-            	}
-       		}
-    	}
+	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ) {
+	  	int fd = (*it)->get_cli_fd();
+	  	if (FD_ISSET(fd, &temp_read_fds)) {
+	  	    if (fd != server_fd) {
+			char buffer[1024] = {0};
+	  	      int bytes_received = recv(fd, buffer, sizeof(buffer), 0);
+	  	        if (bytes_received == 0) {
+				std::cout << "Connection closed by client" << std::endl;
+	  	            close(fd);
+	  	            FD_CLR(fd, &read_fds);
+	  	            delete *it;
+	  	            it = clients.erase(it);
+	  	        } else {
+	  	            buffer[bytes_received] = '\0';
+				  std::cout << "Received: " << buffer << std::endl; // veriler burada işlenmeli
+	  	            ++it;
+	  	        }
+	  	    } else {
+	  	        ++it;
+	  	    }
+	  	} else {
+	  	    ++it;
+	  		}
+		}
 	}
 }
 
 void Server::new_client(int fd)
 {
-	Client client_obj;
-
-	client_obj.set_cli_fd(fd);
-
-	Server::clients.push_back(&client_obj);
-
+	Client* newClient = new Client(fd);
+    clients.push_back(newClient);
 }	
 
 #ifndef SERVER_HPP

@@ -12,6 +12,7 @@ class Client
 
  public:
 
+	Client(int fd){cli_fd = fd; };
 	int get_cli_fd () const { return cli_fd; };
 	void set_cli_fd ( int _cli_fd ) { cli_fd = _cli_fd; };
 
