@@ -9,12 +9,17 @@ class Client
 	int cli_fd;
 	std::string cli_nick;
 	std::string cli_msg;
+	std::string cli_buffer;
 
  public:
 
-	Client(int fd){cli_fd = fd; };
-	int get_cli_fd () const { return cli_fd; };
-	void set_cli_fd ( int _cli_fd ) { cli_fd = _cli_fd; };
+	Client(int fd);
+	int get_cli_fd () const;
+	void set_cli_fd ( int _cli_fd );
+	void set_cli_buffer ( std::string );
+	std::string get_cli_buffer ();
+	std::string get_cli_nick ();
+	void set_cli_nick ( std::string);
 
 };
 

@@ -1,7 +1,7 @@
 #include "../includes/Server.hpp"
 #include "../includes/Channel.hpp"
 
-void Server::run()
+void Server::start()
 {
 	create_socket();
 	bind_listen_socket();
@@ -83,23 +83,29 @@ void Server::accept_select_socket()
         }
     }
 
-	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ) {
+	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); )
+	{
 	  	int fd = (*it)->get_cli_fd();
 	  	if (FD_ISSET(fd, &temp_read_fds)) {
 	  	    if (fd != server_fd) {
 			char buffer[1024] = {0};
 	  	      int bytes_received = recv(fd, buffer, sizeof(buffer), 0);
-	  	        if (bytes_received == 0) {
-				std::cout << "Connection closed by client" << std::endl;
+	  	        if (bytes_received > 0) {
+
+					buffer[bytes_received] = '\0';
+					(*it)->set_cli_buffer(buffer);
+					std::cout << "Received: " << buffer << std::endl; // veriler burada işlenmeli
+	  	            ++it;
+				
+	  	        } else if (bytes_received == 0) {
+					std::cout << "Connection closed by client" << std::endl;
 	  	            close(fd);
 	  	            FD_CLR(fd, &read_fds);
 	  	            delete *it;
 	  	            it = clients.erase(it);
-	  	        } else {
-	  	            buffer[bytes_received] = '\0';
-				  std::cout << "Received: " << buffer << std::endl; // veriler burada işlenmeli
-	  	            ++it;
-	  	        }
+	  	        } else{
+					//hata;
+				}
 	  	    } else {
 	  	        ++it;
 	  	    }
@@ -112,8 +118,7 @@ void Server::accept_select_socket()
 
 void Server::new_client(int fd)
 {
-	Client* newClient = new Client(fd);
-    clients.push_back(newClient);
+    clients.push_back(new Client(fd));
 }	
 
 #ifndef SERVER_HPP

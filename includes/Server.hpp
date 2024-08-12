@@ -92,9 +92,9 @@ class Server
 		void create_socket();
 		void bind_listen_socket();
 		void accept_select_socket();
-		void run();
+		void start();
 		void new_client(int);
-
+		std::vector<Client *> get_clients(){ return clients; };
 };
 
 #endif
