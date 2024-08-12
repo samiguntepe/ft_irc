@@ -1,7 +1,9 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include "Server.hpp"
 #include <iostream>
+#include <vector>
 
 class Client
 {
@@ -10,6 +12,7 @@ class Client
 	std::string cli_nick;
 	std::string cli_msg;
 	std::string cli_buffer;
+	std::vector<Channel*> channels;
 
  public:
 	Client(){};

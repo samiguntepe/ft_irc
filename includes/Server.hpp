@@ -11,10 +11,15 @@
 #include <exception>
 #include <string>
 #include <map>
+#include <vector>
+#include <fcntl.h>
 
 #include "../includes/Channel.hpp"
 #include "../includes/Client.hpp"
 
+
+#define RED	"\033[0;31m"
+#define CODE "\033[m"
 
 #define GET_CURRENT_TIME time(0)
 #define FORMAT_TIME(t, buffer) strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", localtime(&t))
@@ -82,6 +87,8 @@ class Server
 	private:
 		int server_fd;
 		int port_number;
+		std::string password;
+		int signal_flag;
 		sockaddr_in server_address;
 		int addr_len;
 		std::map<std::string, Channel*> channels;
@@ -97,6 +104,8 @@ class Server
 		std::vector<Client *> get_clients(){ return clients; };
 		static void signal_handler(int);
 		void closing_server();
+		void set_signal_flag(int flag){ signal_flag = flag; };
+		int get_signal_flag() const { return signal_flag; };
 };
 
 #endif

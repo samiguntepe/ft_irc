@@ -3,7 +3,7 @@
 
 void Server::start()
 {
-	create_socket();
+	create_socket();  
 	bind_listen_socket();
 	accept_select_socket();
 }
@@ -12,20 +12,26 @@ void Server::signal_handler(int sig_num)
 {
 	Server server;
 	server.closing_server();
-	exit(sig_num);	
+	exit(sig_num);
 }
 
 void Server::closing_server()
 {
+	// std::cout << clients.back()->get_cli_buffer() << std::endl;
+
+	// std::cout << clients.back()->get_cli_fd() << std::endl;
+
 	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
 
-		if ((*it) != NULL) {
-			Client::send_message("Shutting down the server. Connection is being terminated.");
-			// removeClientFromAllChannels(client); Kanallar silinecek
-			// close(it->first);
-			// delete client;
-		}
+		// if ((*it) != NULL) {
+		// 	Client::send_message("Shutting down the server. Connection is being terminated.");
+		// 	// removeClientFromAllChannels(client); Kanallar silinecek
+		// 	// close(it->first);
+		// 	// delete client;
+		// }
+		// std::cout << (*it)->get_cli_buffer() << std::endl;
 	}
+	
 	std::cout << "\nServer is closed." << std::endl;
 }
 
@@ -38,10 +44,17 @@ void Server::arg_control(char **argv)
 	} else {
 		throw RuntimeError("Usage: ./server <port_number>");
 	}
+
 	if (port_number <= 0)
 	{
 		throw RuntimeError("Invalid port number.");
 	}
+	if (port_number < 1024 || port_number > 65535)
+	{
+		throw RuntimeError("Invalid port");
+	}
+	this->password = argv[2];
+
 }
 
 void	Server::create_socket()
@@ -49,6 +62,12 @@ void	Server::create_socket()
 	this->server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (this->server_fd < 0)
 		throw RuntimeError("Socket creation failed.");
+
+	if (fcntl(server_fd, F_SETFL, O_NONBLOCK) == -1)
+	{
+		close(server_fd);
+		throw RuntimeError()
+	}
 
 	std::memset(&server_address, 0, sizeof(server_address));
 	server_address.sin_family = AF_INET;
@@ -74,7 +93,7 @@ void Server::bind_listen_socket()
 
 void Server::accept_select_socket()
 {
-	signal(SIGINT, signal_handler);
+	
 	int new_socket;
 	fd_set read_fds;
 	FD_ZERO(&read_fds);
@@ -116,7 +135,13 @@ void Server::accept_select_socket()
 
 					buffer[bytes_received] = '\0';
 					(*it)->set_cli_buffer(buffer);
-					std::cout << "Received: " << buffer << std::endl; // veriler burada işlenmeli
+				
+
+
+
+					
+
+					 // veriler burada işlenmeli
 	  	            ++it;
 				
 	  	        } else if (bytes_received == 0) {
@@ -125,7 +150,7 @@ void Server::accept_select_socket()
 	  	            FD_CLR(fd, &read_fds);
 	  	            delete *it;
 	  	            it = clients.erase(it);
-	  	        } else{
+	  	        } else {
 					//hata;
 				}
 	  	    } else {

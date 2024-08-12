@@ -18,12 +18,8 @@ void Client::set_cli_fd(int _cli_fd)
 
 void Client::set_cli_buffer(std::string _cli_buffer)
 {
-	if (cli_buffer == "")
-	{
-		cli_buffer = _cli_buffer;
-	} else {
+		// cli_buffer = cli_buffer + _cli_buffer;
 		cli_buffer.append(_cli_buffer);
-	}
 }
 
 std::string Client::get_cli_buffer()
