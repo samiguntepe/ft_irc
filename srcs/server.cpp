@@ -8,6 +8,27 @@ void Server::start()
 	accept_select_socket();
 }
 
+void Server::signal_handler(int sig_num)
+{
+	Server server;
+	server.closing_server();
+	exit(sig_num);	
+}
+
+void Server::closing_server()
+{
+	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
+
+		if ((*it) != NULL) {
+			Client::send_message("Shutting down the server. Connection is being terminated.");
+			// removeClientFromAllChannels(client); Kanallar silinecek
+			// close(it->first);
+			// delete client;
+		}
+	}
+	std::cout << "\nServer is closed." << std::endl;
+}
+
 void Server::arg_control(char **argv)
 {
 	port_number = 0;
@@ -53,6 +74,7 @@ void Server::bind_listen_socket()
 
 void Server::accept_select_socket()
 {
+	signal(SIGINT, signal_handler);
 	int new_socket;
 	fd_set read_fds;
 	FD_ZERO(&read_fds);

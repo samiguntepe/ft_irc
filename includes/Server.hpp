@@ -95,6 +95,8 @@ class Server
 		void start();
 		void new_client(int);
 		std::vector<Client *> get_clients(){ return clients; };
+		static void signal_handler(int);
+		void closing_server();
 };
 
 #endif

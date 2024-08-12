@@ -1,4 +1,5 @@
 #include "../includes/Client.hpp"
+#include "../includes/Server.hpp"
 
 Client::Client(int fd)
 {
@@ -38,4 +39,13 @@ std::string Client::get_cli_nick()
 void Client::set_cli_nick(std::string _cli_nick)
 {
 	cli_nick = _cli_nick;
+}
+
+void Client::send_message(const std::string& message)
+{
+	Client client;
+
+	std::string buffer = message + "\r\n";
+	if (send(client.cli_fd, buffer.c_str(), buffer.length(), 0) == -1)
+		RuntimeError("Failed to send socket");
 }
