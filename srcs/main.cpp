@@ -4,11 +4,11 @@
 
 int main(int argc, char **argv)
 {
-	Server	server(AF_INET, SOCK_STREAM, "First IRC");
 	
 	try {
 		if (argc != 3)
 			throw RuntimeError("Usage: ./server <port_number> <password>");
+		Server	server(AF_INET, SOCK_STREAM, "First IRC");
 		server.arg_control(argv);
 		server.start();
 	} catch (const RuntimeError& e) {

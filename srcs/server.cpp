@@ -6,6 +6,7 @@ Server::Server(int serverSocketFamily, int serverSocketProtocol, string serverNa
 	: server_fd(-1),
 	server_socket_family(serverSocketFamily),
 	server_socket_protocol(serverSocketProtocol),
+	port_number(0),
 	server_name(serverName),
 	password(""),
 	_bot(NULL)
