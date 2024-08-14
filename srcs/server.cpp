@@ -1,38 +1,190 @@
 #include "../includes/Server.hpp"
-#include "../includes/Channel.hpp"
+
+Server* Server::ins = NULL;
+
+Server::Server(int serverSocketFamily, int serverSocketProtocol, string serverName)
+	: server_fd(-1),
+	server_socket_family(serverSocketFamily),
+	server_socket_protocol(serverSocketProtocol),
+	server_name(serverName),
+	password(""),
+	_bot(NULL)
+{
+	signal(SIGINT, signalHandler);
+	Server::setInstance(this);
+	memset(&serverAddress, 0, sizeof(serverAddress));
+	FD_ZERO(&read_set);
+
+}
+
+Server::~Server()
+{
+	delete Server::ins;
+	Server::ins = NULL;
+	for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
+		if (it->second != NULL)
+			delete it->second;
+	}
+	if (!clients.empty())
+		clients.clear();
+	for (std::map<std::string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
+		if (it->second != NULL)
+			delete it->second;
+	}
+	if (!_channels.empty())
+		clients.clear();
+	if (server_fd != -1)
+		close(server_fd);
+	FD_ZERO(&read_set);
+	if (_bot != NULL){
+		delete _bot;
+		_bot = NULL;
+	}
+
+}
+
+void Server::socketStart()
+{
+	server_fd = socket(server_socket_family, server_socket_protocol, 0);
+	if (server_fd == -1)
+		throw RuntimeError("Socket creation failed.");
+	if (fcntl(server_fd, F_SETFL, O_NONBLOCK) == -1)
+	{
+		close(server_fd);
+		RuntimeError("Failed to set socket to non-blocking");
+	}
+	int reuse = 1;
+	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)) == -1)
+	{
+		close(server_fd);
+		RuntimeError("Failed to set socket options");
+	}
+}
+
+void Server::socket_init()
+{
+	switch (server_socket_family)
+	{
+		case AF_INET:
+			serverAddress.sin_addr.s_addr = INADDR_ANY;
+			serverAddress.sin_family = server_socket_family;
+			serverAddress.sin_port = htons(port_number);
+			break;
+			
+		default:
+			close(server_fd);
+			RuntimeError("Not supported domain");
+	}
+}
+
+void Server::socket_bind()
+{
+	if (::bind(server_fd, reinterpret_cast<struct sockaddr*>(&serverAddress), sizeof(serverAddress)) == -1)
+	{
+		close(server_fd);
+		RuntimeError("Failed to bind socket");
+	}
+}
+
+void Server::socket_listen()
+{
+	if (listen(server_fd, BACKLOG_SIZE) == -1 )
+	{
+		close(server_fd);
+		RuntimeError("Failed to listen socket");
+	}
+	FD_SET(server_fd, &read_set);
+}
+
+
+int Server::socket_accept()
+{	
+	struct sockaddr_storage client_address;
+	socklen_t client_address_length = sizeof(client_address);
+	int client_socket_fd = accept(server_fd, (struct sockaddr *)&client_address, &client_address_length);
+	if (client_socket_fd < 0)
+	{
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+		{
+		}
+		else
+		{
+			RuntimeError("Failed to accept socket");
+		}
+	}
+	if (fcntl(client_socket_fd, F_SETFL, O_NONBLOCK) == -1)
+	{
+		close(client_socket_fd);
+		RuntimeError("Failed to set socket to non-blocking");
+	}
+	int reuse = 1;
+	if (setsockopt(client_socket_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)) == -1)
+	{
+		close(client_socket_fd);
+		RuntimeError("Failed to set socket options");
+	}
+	char hostname[NI_MAXHOST];
+	if (inet_ntop(AF_INET, &(((struct sockaddr_in *)&client_address)->sin_addr), hostname, sizeof(hostname)) == NULL)
+	{
+		RuntimeError("Failed to getaddrinfo socket");
+	}
+	Client* client = NULL;
+	client = new Client(client_socket_fd, ntohs(((struct sockaddr_in*)&client_address)->sin_port), hostname, server_name);
+	clients.insert(std::make_pair(client_socket_fd, client));
+	std::ostringstream message_stream;
+	message_stream << "\tNew Client: has connected.";
+	client->sendMessage("Connected to Server");
+	client->sendMessage("Enter the server password using /PASS");
+	log(message_stream.str());
+	return client_socket_fd;
+}
 
 void Server::start()
 {
-	create_socket();  
-	bind_listen_socket();
-	accept_select_socket();
-}
-
-void Server::signal_handler(int sig_num)
-{
-	Server server;
-	server.closing_server();
-	exit(sig_num);
-}
-
-void Server::closing_server()
-{
-	// std::cout << clients.back()->get_cli_buffer() << std::endl;
-
-	// std::cout << clients.back()->get_cli_fd() << std::endl;
-
-	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
-
-		// if ((*it) != NULL) {
-		// 	Client::send_message("Shutting down the server. Connection is being terminated.");
-		// 	// removeClientFromAllChannels(client); Kanallar silinecek
-		// 	// close(it->first);
-		// 	// delete client;
-		// }
-		// std::cout << (*it)->get_cli_buffer() << std::endl;
+	socketStart();
+	socket_init();
+	socket_bind();
+	socket_listen();
+	signal(SIGINT, signalHandler);
+	try
+	{
+		_bot = new Bot("localhost", port_number, password);
 	}
-	
-	std::cout << "\nServer is closed." << std::endl;
+	catch (const std::exception &e)
+	{
+		delete _bot;
+		_bot = NULL;
+		write(STDOUT_FILENO, e.what(), strlen(e.what()));
+	}
+	while (true)
+	{
+		int max_fd = _bot->getSocket();
+		int n = 0;
+		FD_ZERO(&read_set);
+		FD_SET(server_fd, &read_set);
+		FD_SET(_bot->getSocket(), &read_set);
+		for (map<int, Client*>::iterator it = clients.begin(); it != clients.end(); it++)
+		{
+			FD_SET((*it).second->getclient_socket_fd(), &read_set);
+			max_fd = std::max(max_fd, (*it).second->getclient_socket_fd());
+		}
+		n = select(max_fd + 1, &read_set, NULL, NULL, NULL);
+		if(n)
+		{
+			if (FD_ISSET(server_fd, &read_set))
+				socket_accept();
+			for (map<int, Client*>::iterator it = clients.begin(); it != clients.end(); it++)
+			{
+				if (FD_ISSET((*it).second->getclient_socket_fd(), &read_set))
+				{
+					handleClient((*it).second->getclient_socket_fd());
+					break;
+				}
+			}
+			if (FD_ISSET(_bot->getSocket(), &read_set))
+				_bot->listen(this);
+		}
+	}
 }
 
 void Server::arg_control(char **argv)
@@ -42,167 +194,17 @@ void Server::arg_control(char **argv)
 	if (argv[1] != NULL) {
 		port_number = std::atoi(argv[1]);
 	} else {
-		throw RuntimeError("Usage: ./server <port_number>");
+		throw RuntimeError("Usage: ./server <port_number> <password>");
 	}
-
 	if (port_number <= 0)
 	{
 		throw RuntimeError("Invalid port number.");
 	}
 	if (port_number < 1024 || port_number > 65535)
 	{
-		throw RuntimeError("Invalid port");
+		throw RuntimeError("Invalid port.");
 	}
+	std::cout << port_number << std::endl;
 	this->password = argv[2];
 
 }
-
-void	Server::create_socket()
-{
-	this->server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (this->server_fd < 0)
-		throw RuntimeError("Socket creation failed.");
-
-	if (fcntl(server_fd, F_SETFL, O_NONBLOCK) == -1)
-	{
-		close(server_fd);
-		throw RuntimeError()
-	}
-
-	std::memset(&server_address, 0, sizeof(server_address));
-	server_address.sin_family = AF_INET;
-	server_address.sin_port = htons(port_number);
-	server_address.sin_addr.s_addr = inet_addr("127.0.0.1");
-	this->addr_len = sizeof(server_address);
-}
-
-void Server::bind_listen_socket()
-{
-	if (bind(this->server_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
-	{
-		close(this->server_fd);
-		throw RuntimeError("Bind failed.");
-	}
-	if (listen(this->server_fd, 42) < 0)
-	{
-		close(this->server_fd);
-		throw RuntimeError("Listen failed.");
-	}
-	std::cout << "Waiting for connections..." << std::endl;
-}
-
-void Server::accept_select_socket()
-{
-	
-	int new_socket;
-	fd_set read_fds;
-	FD_ZERO(&read_fds);
-	FD_SET(server_fd, &read_fds);
-	int max_fd = server_fd;
-
-	while (1) {
-    fd_set temp_read_fds = read_fds;
-
-    int activity = select(max_fd + 1, &temp_read_fds, NULL, NULL, NULL);
-
-    if (activity < 0) {
-		throw RuntimeError("Select is failed.");
-    }
-
-    if (FD_ISSET(server_fd, &temp_read_fds)) {
-        new_socket = accept(server_fd, (struct sockaddr *)&server_address, (socklen_t*)&addr_len);
-		new_client(new_socket);
-		std::cout << "New connection, socket fd is " << new_socket << "\nIP Address: " << inet_ntoa(server_address.sin_addr) << std::endl;
-
-        if (new_socket < 0) {
-            throw RuntimeError("Accept is failed.");
-        }
-
-        FD_SET(new_socket, &read_fds);
-        if (new_socket > max_fd) {
-            max_fd = new_socket;
-        }
-    }
-
-	for (std::vector<Client*>::iterator it = clients.begin(); it != clients.end(); )
-	{
-	  	int fd = (*it)->get_cli_fd();
-	  	if (FD_ISSET(fd, &temp_read_fds)) {
-	  	    if (fd != server_fd) {
-			char buffer[1024] = {0};
-	  	      int bytes_received = recv(fd, buffer, sizeof(buffer), 0);
-	  	        if (bytes_received > 0) {
-
-					buffer[bytes_received] = '\0';
-					(*it)->set_cli_buffer(buffer);
-				
-
-
-
-					
-
-					 // veriler burada işlenmeli
-	  	            ++it;
-				
-	  	        } else if (bytes_received == 0) {
-					std::cout << "Connection closed by client" << std::endl;
-	  	            close(fd);
-	  	            FD_CLR(fd, &read_fds);
-	  	            delete *it;
-	  	            it = clients.erase(it);
-	  	        } else {
-					//hata;
-				}
-	  	    } else {
-	  	        ++it;
-	  	    }
-	  	} else {
-	  	    ++it;
-	  		}
-		}
-	}
-}
-
-void Server::new_client(int fd)
-{
-    clients.push_back(new Client(fd));
-}	
-
-#ifndef SERVER_HPP
-#define SERVER_HPP
-
-#include <iostream>
-#include <cstring>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <vector>
-#include <exception>
-#include <string>
-
-class RuntimeError : public std::exception {
-	private:
-		   std::string message;
-
-	public:
-		RuntimeError(const std::string& msg) : message(msg) {}
-
-		virtual ~RuntimeError() throw() {}
-
-		virtual const char* what() const throw() {
-			  return message.c_str();
-		}
-};
-
-class Server
-{
-	private:
-		int server_fd;
-		// Diğer üyeler...
-
-	public:
-		void arg_control(char **argv);
-};
-
-#endif // SERVER_HPP

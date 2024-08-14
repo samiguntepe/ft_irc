@@ -1,71 +1,32 @@
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#pragma once
 
-#include <iostream>
-#include <cstring>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <vector>
-#include <exception>
-#include <string>
 #include <map>
-#include <vector>
+#include <iostream>
+#include <netdb.h>
 #include <fcntl.h>
-
-#include "../includes/Channel.hpp"
-#include "../includes/Client.hpp"
-
+#include <stdio.h>
+#include <csignal>
+#include <sstream>
+#include <unistd.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <exception>
+#include "Bot.hpp"
+#include "Client.hpp"
+#include "Channel.hpp"
+#include "Commands.hpp"
+#include "Utilities.hpp"
 
 #define RED	"\033[0;31m"
 #define CODE "\033[m"
 
-#define GET_CURRENT_TIME time(0)
-#define FORMAT_TIME(t, buffer) strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", localtime(&t))
-#define FAILED_SOCKET "Failed to create socket"
-#define FAILED_SOCKET_OPTIONS "Failed to set socket options"
-#define FAILED_SOCKET_NONBLOCKING "Failed to set socket to non-blocking"
-#define FAILED_SOCKET_BIND "Failed to bind socket"
-#define FAILED_SOCKET_LISTEN "Failed to listen socket"
-#define FAILED_SOCKET_ACCEPT "Failed to accept socket"
-#define FAILED_SOCKET_CONNECT "Failed to connect socket"
-#define FAILED_SOCKET_SEND "Failed to send socket"
-#define FAILED_SOCKET_RECV "Failed to recv socket"
-#define FAILED_SOCKET_CLOSE "Failed to close socket"
-#define FAILED_SOCKET_GETADDRINFO "Failed to getaddrinfo socket"
-#define FAILED_SOCKET_DOMAIN "Not supported domain"
-#define FAILED_SOCKET_RECEIVE "Failed to receive socket"
-#define BACKLOG_SIZE 100
-#define MAX_CLIENTS 100
-#define ERROR_SOCKET_SEND "Error while sending a message to a client!"
-#define WELCOME_MESSAGE(source3, source) "Welcome to the " + source3 + " " + source + "!"
-#define RPL_NAMREPLY(nick, channel, users)          ": 353 " + nick + " = " + channel + " :" + users
-#define RPL_ENDOFNAMES(nick, channel)               ": 366 " + nick + " " + channel + " :End of /NAMES list"
-#define RPL_QUIT(source, message) ":" + source + " QUIT :Quit: " + message
-#define ERR_ALREADYREGISTERED(source) "462 " + source + " :You may not register"
-#define ERR_NEEDMOREPARAMS(source, command) "461 " + source + " " + command + " :Not enough parameters"
-#define ERR_NOSUCHCHANNEL(source, channel) "403 " + source + " " + channel + " :No such channel"
-#define ERR_USERONCHANNEL(source, channel) "443 " + source + " " + channel + " :is already on channel"
-#define ERR_BADCHANNELKEY(source, channel) "475 " + source + " " + channel + " :Cannot join channel (+k)"
-#define ERR_INVITEONLYCHAN(source, channel) "473 " + source + " " + channel + " :Cannot join channel (+i)"
-#define ERR_CHANNELISFULL(source, channel) "471 " + source + " " + channel + " :Cannot join channel (+l)"
-#define RPL_JOIN(source, channel) ":" + source + " JOIN :" + channel
-#define ERR_CHANOPRIVSNEEDED(source, channel) "482 " + source + " " + channel + " :You're not channel operator"
-#define ERR_FLAGNOSUCH(source, flag) "501 " + source + " " + flag + " :Unknown MODE flag"
-#define ERR_USERSDONTMATCH(source) "502 " + source + " :Cant change mode for other users"
-#define ERR_NOTONCHANNEL(source, channel) "442 " + source + " " + channel + " :You're not on that channel"
-#define ERR_NOSUCHNICK(source, nick) "401 " + source + " " + nick + " :No such nick"
-#define ERR_USERNOTINCHANNEL(source, nick, channel) "441 " + source + " " + nick + " " + channel + " :They aren't on that channel"
-#define ERR_NONICKNAMEGIVEN(source) "431 " + source + " :No nickname given"
-#define ERR_ERRONEUSNICKNAME(source, nick) "432 " + source + " " + nick + " :Erroneous nickname"
-#define ERR_NICKNAMEINUSE(source, nick) "433 " + source + " " + nick + " :Nickname is already in use"
-#define ERR_NICKCOLLISION(source, nick) "436 " + source + " " + nick + " :Nickname collision KILL"
-#define ERR_INVALIDCAPCMD(source) "410 " + source + " :Invalid CAP subcommand"
-#define ERR_NOTEXTTOSEND(source) "412 " + source + " :No text to send"
-#define ERR_NOCANNOTSENDTOCHAN(source, channel) "404 " + source + " " + channel + " :Cannot send to channel"
-#define ERR_NOKICKCHANNELOWNER(source, channel) source + " " + channel + " :Cannot kick to channel owner!"
-#define RPL_PART(prefix, channel, reason) ":" + prefix + " PART " + channel + " :" + reason
+
+class Client;
+class Channel;
+class Bot;
 
 class RuntimeError : public std::exception
 {
@@ -86,26 +47,54 @@ class Server
 {
 	private:
 		int server_fd;
+		const int server_socket_family;
+		const int server_socket_protocol;
 		int port_number;
-		std::string password;
-		int signal_flag;
-		sockaddr_in server_address;
-		int addr_len;
-		std::map<std::string, Channel*> channels;
-		std::vector<Client *> clients;
+		std::string server_name;
+		std::string	password;
+
+		static Server *ins;
+		struct sockaddr_in serverAddress;
+		fd_set read_set;
+
+		map<int, Client> clientBuffers;
+		map<int, Client*> clients;
+		map<std::string, Channel*> _channels;
+		Bot* _bot;
+
+		void socketStart();
+		void socket_init();
+		void socket_bind();
+		void socket_listen();
+		int socket_accept();
 
 	public:
-		void arg_control(char **argv);
-		void create_socket();
-		void bind_listen_socket();
-		void accept_select_socket();
-		void start();
-		void new_client(int);
-		std::vector<Client *> get_clients(){ return clients; };
-		static void signal_handler(int);
-		void closing_server();
-		void set_signal_flag(int flag){ signal_flag = flag; };
-		int get_signal_flag() const { return signal_flag; };
-};
+		Server();
+		Server ( int serverSocketFamily, int serverSocketProtocol, string serverName );
+		~Server();
 
-#endif
+		map<int, Client*> getAllClients() {
+		return clients;
+		}
+		void start();
+		void shutdownSrv();
+
+		static void signalHandler(int signum);
+		static void signalHandlerServer(int signum);
+		void handleClient(int client_socket_fd);
+		static Server* getInstance() {return ins;}
+		static void setInstance(Server* server){ins = server;}
+		Client* getClient( string& nickName );
+		void removeClientFromAllChannels( Client* client );
+		void clientDisconnect(int client_socket_fd);
+		void setSrvPass(const string& pass);
+		string get_server_password() const{return password;};
+		void addChannel( Channel* channel );
+		Channel* getChannel( string& channelName );
+		bool channelExists( const string& channelName );
+		bool verifySrvPass(const string& pass);
+		void removeChannel(const string& channel );
+		void processPartialCommands(int client_socket_fd);
+		void arg_control(char **);
+		Bot* getBot() { return _bot; }
+};
