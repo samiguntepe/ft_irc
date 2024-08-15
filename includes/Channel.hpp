@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CHANNEL_HPP
+#define CHANNEL_HPP
 
 #include <string>
 #include <unistd.h>
@@ -15,7 +16,7 @@ using namespace std;
 class Channel
 {
 	private:
-		string _channelName;
+		string _channel_name;
 		vector<Client*> clients;
 		Client* _channelOwner;
 
@@ -29,10 +30,10 @@ class Channel
 
 
 	public:
-		Channel ( const string& channelName, const string& channelKey, Client* channelOwner );
+		Channel ( const string& channel_name, const string& channelKey, Client* channelOwner );
 		~Channel();
 
-		string getChannelName() const { return _channelName; }
+		string getchannel_name() const { return _channel_name; }
 		Client* getChannelOwner() const { return _channelOwner; }
 
 		string getChannelKey() const { return _channelKey; }
@@ -59,3 +60,5 @@ class Channel
 		void setUpModeChannel(Channel* channel, Client* client, string& mode, string& modeParams);
 		void setLowModeChannel(Channel* channel, Client* client, string& mode, string& modeParams);
 };
+
+#endif

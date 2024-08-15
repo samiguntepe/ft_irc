@@ -1,8 +1,8 @@
 #include "../includes/Server.hpp"
 
-void Server::removeChannel(const std::string& channelName)
+void Server::remove_channel(const std::string& channel_name)
 {
-	std::map<std::string, Channel*>::iterator it = _channels.find(channelName);
+	std::map<std::string, Channel*>::iterator it = _channels.find(channel_name);
 	if (it != _channels.end())
 	{
 		Channel* channel = it->second;
@@ -13,18 +13,18 @@ void Server::removeChannel(const std::string& channelName)
 		}
 		else
 		{
-			string message = "Channel " + channelName + " is already null.";
+			string message = "Channel " + channel_name + " is already null.";
 			write(STDOUT_FILENO, message.c_str(), message.size());
 		}
 	}
 	else
 	{
-		string message = "Channel " + channelName + " does not exist.";
+		string message = "Channel " + channel_name + " does not exist.";
 		write(STDOUT_FILENO, message.c_str(), message.size());
 	}
 }
 
-void Server::removeClientFromAllChannels(Client* client)
+void Server::remove_client_all_channels(Client* client)
 {
 	if (client == NULL || !client->isSocketOpen())
 		return;
@@ -35,17 +35,17 @@ void Server::removeClientFromAllChannels(Client* client)
 		channels.pop_back();
 		if (channel != NULL)
 		{
-			string channelName = channel->getChannelName();
+			string channel_name = channel->getchannel_name();
 			string clientNick = client->getNickName();
 			channel->removeUserFromChannel(client);
-			client->removeChannel(channel);
-			string leaveMessage = clientNick + " has left the channel " + channelName;
+			client->remove_channel(channel);
+			string leaveMessage = clientNick + " has left the channel " + channel_name;
 			log(leaveMessage);
-			if (channel->getChannelClientCount() == 0 && channelExists(channel->getChannelName()))
+			if (channel->getChannelClientCount() == 0 && channel_exists(channel->getchannel_name()))
 			{
-				string message = "Channel " + channelName + " is empty, deleting.\n";
+				string message = "Channel " + channel_name + " is empty, deleting.\n";
 				write(STDOUT_FILENO, message.c_str(), message.size());
-				removeChannel(channelName);
+				remove_channel(channel_name);
 			}
 		}
 	}
@@ -53,20 +53,20 @@ void Server::removeClientFromAllChannels(Client* client)
 
 void Server::addChannel(Channel* channel)
 {
-	_channels.insert(std::make_pair(channel->getChannelName(), channel));
+	_channels.insert(std::make_pair(channel->getchannel_name(), channel));
 }
 
-bool Server::channelExists(const string& channelName)
+bool Server::channel_exists(const string& channel_name)
 {
 	for (map<string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
 	{
-		if (it->second->getChannelName() == channelName)
+		if (it->second->getchannel_name() == channel_name)
 			return true;
 	}
 	return false;
 }
 
-Client* Server::getClient(string& nickName)
+Client* Server::get_client(string& nickName)
 {
 	for (map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
@@ -76,11 +76,11 @@ Client* Server::getClient(string& nickName)
 	return NULL;
 }
 
-Channel* Server::getChannel(string& channelName)
+Channel* Server::getChannel(string& channel_name)
 {
 	for (map<string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
 	{
-		if (it->second->getChannelName() == channelName)
+		if (it->second->getchannel_name() == channel_name)
 			return it->second;
 	}
 	return NULL;

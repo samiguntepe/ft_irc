@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
 
 #include <string>
 #include <vector>
@@ -59,11 +60,11 @@ public:
 	Client(){};
 	Client& operator=( const Client& copy );
 	Client( const Client& copy ){ *this = copy;};
-	Client( int client_socket_fd, int clientPort, const string& hostName, const string& serverName );
+	Client( int client_socket_fd, int clientPort, const string& hostName, const string& server_name );
 	~Client();
 
-	int getclient_socket_fd() const { return client_socket_fd; }
-	int getClientPort() const { return _clientPort; }
+	int get_client_socket_fd() const { return client_socket_fd; }
+	int get_clientPort() const { return _clientPort; }
 	bool isSocketOpen() const { return client_socket_fd != -1; }
 	bool isOperator() const { return _isOperator; }
 	bool getUserAuth() const { return userAuth; }
@@ -94,5 +95,7 @@ public:
 	void sendReply( const string& reply ) const;
 	void leave();
 	void join( Channel* channel );
-	void removeChannel( Channel* channel );
+	void remove_channel( Channel* channel );
 };
+
+#endif

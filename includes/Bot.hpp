@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BOT_HPP
+#define BOT_HPP
 
 #include "Server.hpp"
 #include "Channel.hpp"
@@ -14,7 +15,7 @@ class Bot {
 		int		sock;
 		string	serv;
 		int		port;
-		string	botPass;
+		string	bot_password;
 		string	nick;
 		string	user;
 		string	realname;
@@ -23,16 +24,17 @@ class Bot {
 		Bot(const string &serv, int port, const string &pass);
 		~Bot();
 
-		string getBotnick() const { return nick; }
-		void connectServ();
-		void sendMsg(const string &channel, const string &msg);
-		void sendRegMsg(const string &msg);
+		string get_botnick() const { return nick; }
+		void connect_server();
+		void send_message(const string &channel, const string &msg);
+		void send_re_message(const string &msg);
 		void listen(Server *srv);
-		void processMessage(const string &msg, Server *srv);
-		int getSocket() const { return sock; }
+		void process_message(const string &msg, Server *srv);
+		int get_socket() const { return sock; }
 
-		void WelcomeMsg(const string &userNick) {
-			sendMsg(userNick, "Welcome to ft_irc Server");
+		void welcome_message(const string &userNick) {
+			send_message(userNick, "Welcome to ft_irc Server");
 		}
 };
 
+#endif

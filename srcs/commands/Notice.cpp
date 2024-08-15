@@ -1,25 +1,25 @@
 #include "../../includes/Commands.hpp"
 
-static void sendNoticeChannelMessage(Client *client, string channelName, string message, Server *srv)
+static void sendNoticeChannelMessage(Client *client, string channel_name, string message, Server *srv)
 {
-    Channel *channel = srv->getChannel(channelName);
+    Channel *channel = srv->getChannel(channel_name);
     if (channel == NULL)
     {
-        client->sendReply(ERR_NOSUCHCHANNEL(client->getNickName(), channelName));
+        client->sendReply(ERR_NOSUCHCHANNEL(client->getNickName(), channel_name));
         return;
     }
-    channel->broadcastMessage(":" + client->getPrefix() + " NOTICE " + channelName + " :" + message);
+    channel->broadcastMessage(":" + client->getPrefix() + " NOTICE " + channel_name + " :" + message);
 }
 
 static void sendNoticeMessage(Client *client, string target, string message, Server *srv)
 {
-    Client *targetClient = srv->getClient(target);
-    if (targetClient == NULL)
+    Client *target_client = srv->get_client(target);
+    if (target_client == NULL)
     {
         client->sendReply(ERR_NOSUCHNICK(client->getNickName(), target));
         return;
     }
-    targetClient->sendMessage(":" + client->getPrefix() + " NOTICE " + target + " :" + message);
+    target_client->sendMessage(":" + client->getPrefix() + " NOTICE " + target + " :" + message);
 }
 
 void Notice::notice(Client *client, vector<string> commandParts, Server *srv)

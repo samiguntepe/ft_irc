@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COMMANDS_HPP
+#define COMMANDS_HPP
 
 #include <string>
 #include <cctype>
@@ -57,7 +58,7 @@ class Join
 		~Join();
 	public:
 		static void join( Client* client, vector<string> commandParts, Server* srv );
-		static void joinChannel( Client* client, string channelName, vector<string> commandParts, Server* srv );
+		static void joinChannel( Client* client, string channel_name, vector<string> commandParts, Server* srv );
 };
 
 class Part
@@ -67,7 +68,7 @@ class Part
 		~Part();
 	public:
 		static void part( Client* client, vector<string> commandParts, Server* srv );
-		static void partChannel( Client* client, string channelName, Server* srv );
+		static void partChannel( Client* client, string channel_name, Server* srv );
 };
 
 class Kick
@@ -124,9 +125,11 @@ class Cap
 		static void cap( Client* client, vector<string> commandParts);
 };
 
-void sendChannelMessage( Client* client, string channelName, string message, Server* srv );
+void sendChannelMessage( Client* client, string channel_name, string message, Server* srv );
 void sendPrivateMessage( Client* client, string target, string message, Server* srv );
 string mergeString(const vector<string>& parts, const string& delimiter);
 string atrim(const std::string& str);
 string strim(const string& str);
 
+
+#endif

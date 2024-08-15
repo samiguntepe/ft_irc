@@ -13,42 +13,42 @@ void Part::part(Client* client, vector<string> commandParts, Server* srv)
     else
     {
         istringstream iss(target);
-        string channelName;
-        while (getline(iss, channelName, ','))
-            partChannel(client, channelName, srv);
+        string channel_name;
+        while (getline(iss, channel_name, ','))
+            partChannel(client, channel_name, srv);
     }
 }
 
-void Part::partChannel(Client* client, string channelName, Server* srv)
+void Part::partChannel(Client* client, string channel_name, Server* srv)
 {
-    if (channelName.empty() || channelName.at(0) != '#')
+    if (channel_name.empty() || channel_name.at(0) != '#')
     {
-      	client->sendMessage( ":" + client->getHostName() + " 403 " + client->getNickName() + " " + channelName + " :No such channel" );
+      	client->sendMessage( ":" + client->getHostName() + " 403 " + client->getNickName() + " " + channel_name + " :No such channel" );
         return;
     }
-    Channel* channel = srv->getChannel(channelName);
+    Channel* channel = srv->getChannel(channel_name);
     if (!channel)
     {
-     	client->sendMessage( ":" + client->getHostName() + " 403 " + client->getNickName() + " " + channelName + " :No such channel" );
+     	client->sendMessage( ":" + client->getHostName() + " 403 " + client->getNickName() + " " + channel_name + " :No such channel" );
         return;
     }
     if (!channel->isUserOnChannel(client))
     {
-        client->sendMessage( ":" + client->getHostName() + " 442 " + client->getNickName() + " " + channelName + " :You're not on that channel" );
+        client->sendMessage( ":" + client->getHostName() + " 442 " + client->getNickName() + " " + channel_name + " :You're not on that channel" );
         return;
     }
     channel->removeUserFromChannel(client);
-    client->removeChannel(channel);
+    client->remove_channel(channel);
 
-    string message = ":" + client->getPrefix() + " PART " + channelName + "\n";
+    string message = ":" + client->getPrefix() + " PART " + channel_name + "\n";
     channel->broadcastMessage(message, client);
 
-   	client->sendMessage( "You left the channel " + channelName );
-    if (channel->getChannelClientCount() == 0 && srv->channelExists(channelName))
+   	client->sendMessage( "You left the channel " + channel_name );
+    if (channel->getChannelClientCount() == 0 && srv->channel_exists(channel_name))
     {
-   		string channelName = channel->getChannelName();
-		string message = "Channel " + channelName + " is empty, deleting.\n";
+   		string channel_name = channel->getchannel_name();
+		string message = "Channel " + channel_name + " is empty, deleting.\n";
 		write( 1, message.c_str(), message.length() );
-		srv->removeChannel(channelName);
+		srv->remove_channel(channel_name);
     }
 }

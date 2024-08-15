@@ -29,41 +29,41 @@ void PrivMsg::privMsg(Client *client, vector<string> commandParts, Server *srv)
     }
 }
 
-void sendChannelMessage(Client *client, string channelName, string message, Server *srv)
+void sendChannelMessage(Client *client, string channel_name, string message, Server *srv)
 {
     string bot_name = "reepNaoBot";
-    Client *bot = srv->getClient(bot_name);
-    Channel *channel = srv->getChannel(channelName);
+    Client *bot = srv->get_client(bot_name);
+    Channel *channel = srv->getChannel(channel_name);
     if (channel == NULL)
     {
-        client->sendReply(ERR_NOSUCHCHANNEL(client->getNickName(), channelName));
+        client->sendReply(ERR_NOSUCHCHANNEL(client->getNickName(), channel_name));
         return;
     }
     if (channel->getModerated() && !client->isOperator())
     {
-        client->sendReply(ERR_NOCANNOTSENDTOCHAN(client->getNickName(), channelName));
+        client->sendReply(ERR_NOCANNOTSENDTOCHAN(client->getNickName(), channel_name));
         return;
     }
     if (channel->getNoExternalMessages() && !channel->isUserOnChannel(client))
     {
-        client->sendReply(ERR_NOCANNOTSENDTOCHAN(client->getNickName(), channelName));
+        client->sendReply(ERR_NOCANNOTSENDTOCHAN(client->getNickName(), channel_name));
         return;
     }
-    channel->broadcastMessage(":" + client->getPrefix() + " PRIVMSG " + channelName + " :" + message, client);
-    bot->sendMessage(":" + client->getPrefix() + " PRIVMSG " + channelName + " :" + message);
+    channel->broadcastMessage(":" + client->getPrefix() + " PRIVMSG " + channel_name + " :" + message, client);
+    bot->sendMessage(":" + client->getPrefix() + " PRIVMSG " + channel_name + " :" + message);
 }
 
 void sendPrivateMessage(Client *client, string target, string message, Server *srv)
 {
-    Client *targetClient = srv->getClient(target);
+    Client *target_client = srv->get_client(target);
     string bot_name = "reepNaoBot";
-    Client *bot = srv->getClient(bot_name);
-    if (targetClient == NULL)
+    Client *bot = srv->get_client(bot_name);
+    if (target_client == NULL)
     {
         client->sendReply(ERR_NOSUCHNICK(client->getNickName(), target));
         return;
     }
-    targetClient->sendMessage(":" + client->getPrefix() + " PRIVMSG " + target + " :" + message);
+    target_client->sendMessage(":" + client->getPrefix() + " PRIVMSG " + target + " :" + message);
     if (bot_name != target)
         bot->sendMessage(":" + client->getPrefix() + " PRIVMSG " + target + " :" + message);
 }

@@ -1,53 +1,53 @@
 #include "../includes/Server.hpp"
 
-void Server::processPartialCommands(int client_socket_fd)
+void Server::process_partial_commands(int client_socket_fd)
 {
-	string& clientBuffer = clientBuffers[client_socket_fd].getBuffer();
+	string& client_buffer = client_buffers[client_socket_fd].getBuffer();
 	size_t endOfCommand;
 	string command;
-	if (clientBuffer[0] == '/')
+	if (client_buffer[0] == '/')
 	{
-		while ((endOfCommand = clientBuffer.find('\n')) != string::npos)
+		while ((endOfCommand = client_buffer.find('\n')) != string::npos)
 		{
-			command = clientBuffer.substr(0, endOfCommand);
-			clientBuffer.erase(0, endOfCommand + 1);
+			command = client_buffer.substr(0, endOfCommand);
+			client_buffer.erase(0, endOfCommand + 1);
 			CommandParser::commandParser(command.c_str(), clients[client_socket_fd], this);
 		}
-		if (!clientBuffer.find('\n'))
-			clientBuffer.clear();
+		if (!client_buffer.find('\n'))
+			client_buffer.clear();
 	}
 	else
 	{
-		while ((endOfCommand = clientBuffer.find("\r\n")) != string::npos)
+		while ((endOfCommand = client_buffer.find("\r\n")) != string::npos)
 		{
-			command = clientBuffer.substr(0, endOfCommand);
-			clientBuffer.erase(0, endOfCommand + 2);
+			command = client_buffer.substr(0, endOfCommand);
+			client_buffer.erase(0, endOfCommand + 2);
 			CommandParser::commandParser(command.c_str(), clients[client_socket_fd], this);
 		}
-		clientBuffer.clear();
+		client_buffer.clear();
 	}
 }
 
-void Server::handleClient(int client_socket_fd)
+void Server::handle_client(int client_socket_fd)
 {
 	const size_t BUFFER_SIZE = 512;
 	char tempBuffer[BUFFER_SIZE];
 	memset(tempBuffer, 0, BUFFER_SIZE);
 	ssize_t received = recv(client_socket_fd, tempBuffer, BUFFER_SIZE - 1, 0);
 	if (received > 0) {
-		clientBuffers[client_socket_fd].appendtoBuffer(string(tempBuffer, received));
+		client_buffers[client_socket_fd].appendtoBuffer(string(tempBuffer, received));
 		cout << "Received: " << tempBuffer << endl;
-		processPartialCommands(client_socket_fd);
+		process_partial_commands(client_socket_fd);
 	} else if (received == 0 || errno == ECONNRESET) {
 		FD_CLR(client_socket_fd, &read_set);
 		clientDisconnect(client_socket_fd);
-		clientBuffers.erase(client_socket_fd);
+		client_buffers.erase(client_socket_fd);
 	} else {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			FD_CLR(client_socket_fd, &read_set);
 			ErrorLogger("recv error", __FILE__, __LINE__);
 			close(client_socket_fd);
-			clientBuffers.erase(client_socket_fd);
+			client_buffers.erase(client_socket_fd);
 		}
 	}
 }
@@ -61,7 +61,7 @@ void Server::clientDisconnect(int client_socket_fd)
             write(STDOUT_FILENO, "Client not found for removal.\n", 30);
             return;
         }
-        removeClientFromAllChannels(it->second);
+        remove_client_all_channels(it->second);
         it->second->leave();
         ostringstream message_streamDisconnect;
         message_streamDisconnect << "Client " << it->second->getNickName() << " has disconnected.";
@@ -81,20 +81,20 @@ void Server::setSrvPass(const string& pass) {
 	password = pass;
 }
 
-bool Server::verifySrvPass(const string& pass) {
+bool Server::verify_server_password(const string& pass) {
 	if (password == pass) {
 		return true;
 	}
 	return false;
 }
 
-void Server::signalHandler(int signum)
+void Server::signal_handler(int signum)
 {
-	Server::getInstance()->shutdownSrv();
+	Server::get_instance()->shut_down_server();
 	exit(signum);
 }
 
-void Server::shutdownSrv()
+void Server::shut_down_server()
 {
 	string outmessage = "Shutting down the server...\n";
 	write(STDOUT_FILENO, outmessage.c_str(), outmessage.size());
@@ -102,7 +102,7 @@ void Server::shutdownSrv()
 		Client* client = it->second;
 		if (client != NULL) {
 			client->sendMessage("Shutting down the server. Your connection is being terminated.");
-			removeClientFromAllChannels(client);
+			remove_client_all_channels(client);
 			close(it->first);
 			delete client;
 		}

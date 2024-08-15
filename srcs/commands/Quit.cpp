@@ -6,6 +6,6 @@ void Quit::quit(Client *client, vector<string> commandParts, Server *srv)
     if (reason.at(0) == ':')
         reason.substr(1);
     client->sendMessage(RPL_QUIT(client->getPrefix(), reason));
-    srv->removeClientFromAllChannels(client);
-    srv->clientDisconnect(client->getclient_socket_fd());
+    srv->remove_client_all_channels(client);
+    srv->clientDisconnect(client->get_client_socket_fd());
 }

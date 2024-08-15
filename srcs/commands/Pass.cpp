@@ -14,7 +14,7 @@ void Pass::pass(Client *client, const vector<string> commandParts, Server *srv)
         return;
     }
     string passw = commandParts.at(1);
-    if (!srv->verifySrvPass(passw))
+    if (!srv->verify_server_password(passw))
     {
         client->sendMessage("Access denied!");
         return;

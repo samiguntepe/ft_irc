@@ -1,10 +1,10 @@
 #include "../includes/Client.hpp"
 
-Client::Client(int client_socket_fd, int clientPort, const string& hostName, const string& serverName)
+Client::Client(int client_socket_fd, int clientPort, const string& hostName, const string& server_name)
 	: client_socket_fd(client_socket_fd),
 	  _clientPort(clientPort),
 	  _hostName(hostName),
-	  server_name(serverName),
+	  server_name(server_name),
 	  clientstatus(CLIENT_CONNECTED),
 	  _channel(),
 	  userAuth(false),
@@ -110,13 +110,13 @@ void Client::join(Channel* channel)
 	{
 		nickList += *it + " ";
 	}
-	sendReply(RPL_NAMREPLY(getPrefix(), channel->getChannelName(), nickList));
-	channel->broadcastMessage(RPL_JOIN(getPrefix(), channel->getChannelName()));
-	string message = _nickName + " " + " has joined to the channel " + channel->getChannelName();
+	sendReply(RPL_NAMREPLY(getPrefix(), channel->getchannel_name(), nickList));
+	channel->broadcastMessage(RPL_JOIN(getPrefix(), channel->getchannel_name()));
+	string message = _nickName + " " + " has joined to the channel " + channel->getchannel_name();
 	log(message);
 }
 
-void Client::removeChannel(Channel* channel)
+void Client::remove_channel(Channel* channel)
 {
 	std::vector<Channel*>::iterator it = std::find(_channel.begin(), _channel.end(), channel);
 	if (it != _channel.end())

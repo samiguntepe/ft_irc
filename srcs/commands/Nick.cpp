@@ -19,7 +19,7 @@ void Nick::nick(Client *client, vector<string> commandParts, Server *srv)
         client->sendReply(ERR_NICKNAMEINUSE(client->getNickName(), nickName));
         return;
     }
-    const std::map<int, Client *> &clients = srv->getAllClients();
+    const std::map<int, Client *> &clients = srv->get_all_clients();
     for (std::map<int, Client *>::const_iterator it = clients.begin(); it != clients.end(); ++it)
     {
         const Client *regUser = it->second;

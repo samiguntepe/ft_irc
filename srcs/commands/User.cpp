@@ -25,7 +25,7 @@ void User::user(Client *client, vector<string> commandParts, Server *srv)
     }
     std::string userName = commandParts.at(1);
     std::string realName = commandParts.at(2);
-    const std::map<int, Client *> &clients = srv->getAllClients();
+    const std::map<int, Client *> &clients = srv->get_all_clients();
     for (std::map<int, Client *>::const_iterator it = clients.begin(); it != clients.end(); ++it)
     {
         const Client *regUser = it->second;
@@ -45,8 +45,8 @@ void User::user(Client *client, vector<string> commandParts, Server *srv)
     client->setUserAuth(true);
     if (client->getUserAuth() == true)
     {
-        Bot *bot = srv->getBot();
+        Bot *bot = srv->get_bot();
         if (bot)
-            bot->WelcomeMsg(client->getNickName());
+            bot->welcome_message(client->getNickName());
     }
 }
