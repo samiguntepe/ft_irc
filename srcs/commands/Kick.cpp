@@ -4,7 +4,7 @@ void Kick::kick(Client* client, vector<string> commandParts, Server* srv)
 {
     if (commandParts.size() < 3)
     {
-        client->sendReply(ERR_NEEDMOREPARAMS(client->getNickName(), "KICK"));
+        client->send_reply(ERR_NEEDMOREPARAMS(client->get_nick_name(), "KICK"));
         return;
     }
     string channel_namee = commandParts.at(1);
@@ -12,55 +12,55 @@ void Kick::kick(Client* client, vector<string> commandParts, Server* srv)
     string reason = (commandParts.size() > 3) ? commandParts.at(3) : "No reason specified";
     if (channel_namee.at(0) != '#')
     {
-        client->sendReply(ERR_NOSUCHCHANNEL(client->getNickName(), channel_namee));
+        client->send_reply(ERR_NOSUCHCHANNEL(client->get_nick_name(), channel_namee));
         return;
     }
-    Channel* channel = srv->getChannel(channel_namee);
+    Channel* channel = srv->get_channel(channel_namee);
     if (!channel)
     {
-        client->sendReply(ERR_NOSUCHCHANNEL(client->getNickName(), channel_namee));
+        client->send_reply(ERR_NOSUCHCHANNEL(client->get_nick_name(), channel_namee));
         return;
     }
-    if (!channel->isUserOnChannel(client))
+    if (!channel->is_user_on_channel(client))
     {
-        client->sendReply(ERR_NOTONCHANNEL(client->getNickName(), channel_namee));
+        client->send_reply(ERR_NOTONCHANNEL(client->get_nick_name(), channel_namee));
         return;
     }
     Client* target = srv->get_client(nickName);
     if (!target)
     {
-        client->sendReply(ERR_NOSUCHNICK(client->getNickName(), nickName));
+        client->send_reply(ERR_NOSUCHNICK(client->get_nick_name(), nickName));
         return;
     }
-    if (!channel->isUserOnChannel(target))
+    if (!channel->is_user_on_channel(target))
     {
-        client->sendReply(ERR_USERNOTINCHANNEL(client->getNickName(), nickName, channel_namee));
+        client->send_reply(ERR_USERNOTINCHANNEL(client->get_nick_name(), nickName, channel_namee));
         return;
     }
-    if (channel->getChannelOwner()->getNickName() == target->getNickName())
+    if (channel->get_channel_owner()->get_nick_name() == target->get_nick_name())
     {
-        client->sendReply(ERR_NOKICKCHANNELOWNER(client->getNickName(), channel_namee));
+        client->send_reply(ERR_NOKICKCHANNELOWNER(client->get_nick_name(), channel_namee));
         return;
     }
-    if (client->isOperator())
+    if (client->is_operator())
     {
-        channel->removeUserFromChannel(target);
+        channel->remove_user_from_channel(target);
         target->remove_channel(channel);
-        string message = ":" + client->getPrefix() + " KICK " + channel_namee + " " + nickName + " :" + reason + "\n";
-        channel->broadcastMessage(message, client);
-        target->sendMessage(":" + client->getPrefix() + " KICK " + channel_namee + " " + nickName + " :" + reason);
-        target->sendMessage("You have been kicked from channel " + channel_namee + " by " + client->getNickName());
-        string leavemessage = client->getNickName() + " kicked " + target->getNickName() + " from channel " + channel->getchannel_name();
+        string message = ":" + client->get_prefix() + " KICK " + channel_namee + " " + nickName + " :" + reason + "\n";
+        channel->broadcast_message(message, client);
+        target->send_message(":" + client->get_prefix() + " KICK " + channel_namee + " " + nickName + " :" + reason);
+        target->send_message("You have been kicked from channel " + channel_namee + " by " + client->get_nick_name());
+        string leavemessage = client->get_nick_name() + " kicked " + target->get_nick_name() + " from channel " + channel->get_channel_name();
         log(leavemessage);
     }
     else
     {
-        client->sendReply(ERR_CHANOPRIVSNEEDED(client->getNickName(), channel_namee));
+        client->send_reply(ERR_CHANOPRIVSNEEDED(client->get_nick_name(), channel_namee));
         return;
     }
-    if (channel->getChannelClientCount() == 0)
+    if (channel->get_channel_client_count() == 0)
     {
-        string channel_name = channel->getchannel_name();
+        string channel_name = channel->get_channel_name();
         srv->remove_channel(channel_name);
     }
 }

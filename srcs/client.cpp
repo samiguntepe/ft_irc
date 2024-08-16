@@ -2,14 +2,14 @@
 
 Client::Client(int client_socket_fd, int clientPort, const string& hostName, const string& server_name)
 	: client_socket_fd(client_socket_fd),
-	  _clientPort(clientPort),
-	  _hostName(hostName),
+	  _client_port(clientPort),
+	  _host_name(hostName),
 	  server_name(server_name),
 	  clientstatus(CLIENT_CONNECTED),
 	  _channel(),
-	  userAuth(false),
-	  _isPass(false),
-	  _isOperator(false)
+	  user_auth(false),
+	  _is_password(false),
+	  _is_operator(false)
 {
 }
 
@@ -26,31 +26,31 @@ Client::~Client()
 Client& Client::operator=(const Client& copy)
 {
 	client_socket_fd = copy.client_socket_fd;
-	_clientPort = copy._clientPort;
-	_nickName = copy._nickName;
-	_userName = copy._userName;
-	_realName = copy._realName;
-	_hostName = copy._hostName;
+	_client_port = copy._client_port;
+	_nick_name = copy._nick_name;
+	_user_name = copy._user_name;
+	_real_name = copy._real_name;
+	_host_name = copy._host_name;
 	server_name = copy.server_name;
 	clientstatus = copy.clientstatus;
 	_channel = copy._channel;
-	userAuth = copy.userAuth;
-	_isPass = copy._isPass;
-	_isOperator = copy._isOperator;
+	user_auth = copy.user_auth;
+	_is_password = copy._is_password;
+	_is_operator = copy._is_operator;
 	return *this;
 }
 
-string Client::getPrefix() const
+string Client::get_prefix() const
 {
-	string username = _userName.empty() ? "defUN" : _userName;
-	string hostname = _hostName.empty() ? "defHN" : _hostName;
-	return _nickName + "!" + username + "@" + hostname;
+	string username = _user_name.empty() ? "defUN" : _user_name;
+	string hostname = _host_name.empty() ? "defHN" : _host_name;
+	return _nick_name + "!" + username + "@" + hostname;
 }
 
-void Client::setNickName(const string& nickName)
+void Client::set_nick_name(const string& nickName)
 {
 	if (isValidName(nickName))
-		_nickName = nickName;
+		_nick_name = nickName;
 	else
 	{
 		string error = "Invalid nickname: " + nickName;
@@ -58,10 +58,10 @@ void Client::setNickName(const string& nickName)
 	}
 }
 
-void Client::setUserName(const string& userName)
+void Client::set_user_name(const string& userName)
 {
 	if (isValidName(userName))
-		_userName = userName;
+		_user_name = userName;
 	else
 	{
 		string error = "Invalid username: " + userName;
@@ -69,30 +69,30 @@ void Client::setUserName(const string& userName)
 	}
 }
 
-void Client::welcomeMessage()
+void Client::welcome_message()
 {
-	if (clientstatus != CLIENT_CONNECTED || _nickName.empty() || _userName.empty() || _realName.empty())
+	if (clientstatus != CLIENT_CONNECTED || _nick_name.empty() || _user_name.empty() || _real_name.empty())
 	{
-		sendReply("ERROR :Closing Link: " + _hostName + " (Invalid nickname or username)");
+		send_reply("ERROR :Closing Link: " + _host_name + " (Invalid nickname or username)");
 		return;
 	}
 	clientstatus = CLIENT_REGISTERED;
-	sendReply(WELCOME_MESSAGE(server_name, _nickName));
+	send_reply(WELCOME_MESSAGE(server_name, _nick_name));
 	std::ostringstream oss;
-	oss << _hostName << ":" << _clientPort << " is now known as " << _nickName << ".";
+	oss << _host_name << ":" << _client_port << " is now known as " << _nick_name << ".";
 	log(oss.str());
 }
 
-void Client::sendMessage(const string& message) const
+void Client::send_message(const string& message) const
 {
 	string buffer = message + "\r\n";
 	if (send(client_socket_fd, buffer.c_str(), buffer.length(), 0) == -1)
 		ErrorLogger(FAILED_SOCKET_SEND, __FILE__, __LINE__);
 }
 
-void Client::sendReply(const string& reply) const
+void Client::send_reply(const string& reply) const
 {
-	sendMessage(getPrefix() + " " + reply);
+	send_message(get_prefix() + " " + reply);
 }
 
 void Client::leave()
@@ -102,17 +102,17 @@ void Client::leave()
 
 void Client::join(Channel* channel)
 {
-	channel->addClient(this);
+	channel->add_client(this);
 	_channel.push_back(channel);
 	std::string nickList;
-	std::vector<std::string> nicknames = channel->getChannelClientNickNames();
+	std::vector<std::string> nicknames = channel->get_Channel_Client_Nick_Names();
 	for (std::vector<std::string>::iterator it = nicknames.begin(); it != nicknames.end(); ++it)
 	{
 		nickList += *it + " ";
 	}
-	sendReply(RPL_NAMREPLY(getPrefix(), channel->getchannel_name(), nickList));
-	channel->broadcastMessage(RPL_JOIN(getPrefix(), channel->getchannel_name()));
-	string message = _nickName + " " + " has joined to the channel " + channel->getchannel_name();
+	send_reply(RPL_NAMREPLY(get_prefix(), channel->get_channel_name(), nickList));
+	channel->broadcast_message(RPL_JOIN(get_prefix(), channel->get_channel_name()));
+	string message = _nick_name + " " + " has joined to the channel " + channel->get_channel_name();
 	log(message);
 }
 

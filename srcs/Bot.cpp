@@ -93,9 +93,9 @@ void Bot::process_message(const string &msg, Server *srv)
 			if (msg.find("whoami") != string::npos)
 			{
 				Client *client = srv->get_client(senderNick);
-				send_message(senderNick,"My nickname->"+ client->getNickName());
-				send_message(senderNick,"My realname->"+ client->getRealName());
-				send_message(senderNick,"My hostname->"+ client->getHostName());
+				send_message(senderNick,"My nickname->"+ client->get_nick_name());
+				send_message(senderNick,"My realname->"+ client->get_real_name());
+				send_message(senderNick,"My hostname->"+ client->get_host_name());
 			}
 		}
 	}

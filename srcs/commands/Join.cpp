@@ -4,7 +4,7 @@ void Join::join(Client* client, vector<string> commandParts, Server* srv)
 {
     if (commandParts.size() < 2)
     {
-        client->sendReply(ERR_NEEDMOREPARAMS(client->getNickName(), "JOIN"));
+        client->send_reply(ERR_NEEDMOREPARAMS(client->get_nick_name(), "JOIN"));
         return;
     }
     string channel = commandParts.at(1);
@@ -17,7 +17,7 @@ void Join::joinChannel(Client* client, string channel_name, vector<string> comma
     string channelPass;
     if (channel_name.empty())
     {
-        client->sendReply(ERR_NOSUCHCHANNEL(client->getNickName(), channel_name));
+        client->send_reply(ERR_NOSUCHCHANNEL(client->get_nick_name(), channel_name));
         return;
     }
     if (commandParts.size() == 2)
@@ -26,37 +26,37 @@ void Join::joinChannel(Client* client, string channel_name, vector<string> comma
         channelPass = commandParts.at(2);
     if (channel_name.size() < 2 || channel_name.at(0) != '#')
     {
-        client->sendReply(ERR_NOSUCHCHANNEL(client->getNickName(), channel_name));
+        client->send_reply(ERR_NOSUCHCHANNEL(client->get_nick_name(), channel_name));
         return;
     }
     Channel* channel;
     if (srv->channel_exists(channel_name))
     {
-        channel = srv->getChannel(channel_name);
-        if (channel->isUserOnChannel(client))
+        channel = srv->get_channel(channel_name);
+        if (channel->is_user_on_channel(client))
         {
-            client->sendReply(ERR_USERONCHANNEL(client->getNickName(), channel_name));
+            client->send_reply(ERR_USERONCHANNEL(client->get_nick_name(), channel_name));
             return;
         }
-        else if (channel->getChannelKey() != channelPass)
+        else if (channel->get_channel_key() != channelPass)
         {
-            client->sendReply(ERR_BADCHANNELKEY(client->getNickName(), channel_name));
+            client->send_reply(ERR_BADCHANNELKEY(client->get_nick_name(), channel_name));
             return;
         }
-        else if (channel->getUserLimit() <= channel->getChannelClientCount())
+        else if (channel->get_user_limit() <= channel->get_channel_client_count())
         {
-            client->sendReply(ERR_CHANNELISFULL(client->getNickName(), channel_name));
+            client->send_reply(ERR_CHANNELISFULL(client->get_nick_name(), channel_name));
             return;
         }
     }
     else
     {
         channel = new Channel(channel_name, channelPass, client);
-        channel->setChannelOwner(client);
-        client->setOperator(true);
+        channel->set_channel_owner(client);
+        client->set_operator(true);
         srv->addChannel(channel);
-        channel->setNoExternalMessages(true);
-		channel->broadcastMessage("MODE " + channel->getchannel_name() + " +n " + client->getNickName());
+        channel->set_no_external_messages(true);
+		channel->broadcast_message("MODE " + channel->get_channel_name() + " +n " + client->get_nick_name());
     }
     client->join(channel);
 }

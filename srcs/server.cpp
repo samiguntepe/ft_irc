@@ -132,8 +132,8 @@ int Server::socket_accept()
 	clients.insert(std::make_pair(client_socket_fd, client));
 	std::ostringstream message_stream;
 	message_stream << "\tNew Client: has connected.";
-	client->sendMessage("Connected to Server");
-	client->sendMessage("Enter the server password using /PASS");
+	client->send_message("Connected to Server");
+	client->send_message("Enter the server password using /PASS");
 	log(message_stream.str());
 	return client_socket_fd;
 }

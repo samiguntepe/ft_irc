@@ -1,9 +1,9 @@
 #include "../includes/Channel.hpp"
 
 Channel::Channel(const string& channel_name, const string& channelKey, Client* channelOwner) : _channel_name(channel_name), _channelOwner(channelOwner),
-	  _channelKey(channelKey),
-	  _userLimit(1000),
-	  _noExternalMessages(false),
+	  _channel_key(channelKey),
+	  _user_limit(1000),
+	  _no_external_messages(false),
 	  _moderated(false)
 {
 }
@@ -12,30 +12,30 @@ Channel::~Channel()
 {
 }
 
-void Channel::broadcastMessage(const string& message) const
+void Channel::broadcast_message(const string& message) const
 {
 	string tmp = message;
 	for (vector<Client*>::const_iterator it = clients.begin(); it != clients.end(); ++it)
 	{
-		(*it)->sendMessage(message);
+		(*it)->send_message(message);
 	}
 }
 
-void Channel::broadcastMessage(const string& message, Client* exceptClient) const
+void Channel::broadcast_message(const string& message, Client* exceptClient) const
 {
 	for (vector<Client*>::const_iterator it = clients.begin(); it != clients.end(); ++it)
 	{
 		if (*it != exceptClient)
-			(*it)->sendMessage(message);
+			(*it)->send_message(message);
 	}
 }
 
-void Channel::addClient(Client* client)
+void Channel::add_client(Client* client)
 {
 	clients.push_back(client);
 }
 
-void Channel::removeUserFromChannel(Client* client)
+void Channel::remove_user_from_channel(Client* client)
 {
 	for (vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
@@ -45,28 +45,28 @@ void Channel::removeUserFromChannel(Client* client)
 			break;
 		}
 	}
-	if (client->isOperator() == true)
+	if (client->is_operator() == true)
 	{
-		client->setOperator(false);
+		client->set_operator(false);
 		for (vector<Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
 		{
-			if ((*it)->isOperator() == true)
+			if ((*it)->is_operator() == true)
 				return;
 		}
 		if (clients.size() > 0)
 		{
 			Client* newOperator = clients.front();
-			if (newOperator->isOperator() == false)
+			if (newOperator->is_operator() == false)
 			{
-				newOperator->setOperator(true);
-				setChannelOwner(newOperator);
-				broadcastMessage("MODE " + _channel_name + " +o " + newOperator->getNickName());
+				newOperator->set_operator(true);
+				set_channel_owner(newOperator);
+				broadcast_message("MODE " + _channel_name + " +o " + newOperator->get_nick_name());
 			}
 		}
 	}
 }
 
-bool Channel::isUserOnChannel(Client* client) const
+bool Channel::is_user_on_channel(Client* client) const
 {
 	for (vector<Client*>::const_iterator it = clients.begin(); it != clients.end(); ++it)
 	{
@@ -76,106 +76,106 @@ bool Channel::isUserOnChannel(Client* client) const
 	return false;
 }
 
-void Channel::setUpModeChannel(Channel* channel, Client* client, string& mode, string& modeParams)
+void Channel::set_up_mode_channel(Channel* channel, Client* client, string& mode, string& modeParams)
 {
 	if (!channel || !client)
 	{
 		write(2, "Channel or Client is null, cannot set mode.", 43);
 		return;
 	}
-	if (mode == "+k" && (client->isOperator() == true))
+	if (mode == "+k" && (client->is_operator() == true))
 	{
-		channel->setChannelKey(modeParams);
-		channel->broadcastMessage("MODE " + channel->getchannel_name() + " +k " + client->getNickName());
+		channel->set_channel_key(modeParams);
+		channel->broadcast_message("MODE " + channel->get_channel_name() + " +k " + client->get_nick_name());
 	}
-	else if (mode == "+l" && (client->isOperator() == true))
+	else if (mode == "+l" && (client->is_operator() == true))
 	{
-		channel->setUserLimit(atoi(modeParams.c_str()));
-		channel->broadcastMessage("MODE " + channel->getchannel_name() + " +l " + client->getNickName());
+		channel->set_user_limit(atoi(modeParams.c_str()));
+		channel->broadcast_message("MODE " + channel->get_channel_name() + " +l " + client->get_nick_name());
 	}
-	else if (mode == "+o" && (client->isOperator() == true))
+	else if (mode == "+o" && (client->is_operator() == true))
 	{
 		Client* target_client = Server::get_instance()->get_client(modeParams);
 		if (!target_client)
 		{
-			client->sendMessage(":" + client->getHostName() + " 401 " + client->getNickName() + " " + modeParams + " :No such nick/channel\r\n");
+			client->send_message(":" + client->get_host_name() + " 401 " + client->get_nick_name() + " " + modeParams + " :No such nick/channel\r\n");
 			return;
 		}
-		target_client->setOperator(true);
-		channel->broadcastMessage("MODE " + channel->getchannel_name() + " +o " + target_client->getNickName());
+		target_client->set_operator(true);
+		channel->broadcast_message("MODE " + channel->get_channel_name() + " +o " + target_client->get_nick_name());
 	}
-	else if (mode == "+m" && client->isOperator() == true)
+	else if (mode == "+m" && client->is_operator() == true)
 	{
-		channel->setModerated(true);
-		channel->broadcastMessage("MODE " + channel->getchannel_name() + " +m " + client->getNickName());
+		channel->set_moderated(true);
+		channel->broadcast_message("MODE " + channel->get_channel_name() + " +m " + client->get_nick_name());
 	}
-	else if (mode == "+n" && (client->isOperator() == true))
+	else if (mode == "+n" && (client->is_operator() == true))
 	{
-		channel->setNoExternalMessages(true);
-		channel->broadcastMessage("MODE " + channel->getchannel_name() + " +n " + client->getNickName());
+		channel->set_no_external_messages(true);
+		channel->broadcast_message("MODE " + channel->get_channel_name() + " +n " + client->get_nick_name());
 	}
 	else
 	{
-		client->sendMessage(":" + client->getHostName() + " 501 " + client->getNickName() + " :Unknown MODE flag");
+		client->send_message(":" + client->get_host_name() + " 501 " + client->get_nick_name() + " :Unknown MODE flag");
 	}
 }
 
-void Channel::setLowModeChannel(Channel* channel, Client* client, string& mode, string& modeParams)
+void Channel::set_low_mode_channel(Channel* channel, Client* client, string& mode, string& modeParams)
 {
 	if (!channel || !client)
 	{
 		write(2, "Channel or Client is not valid, cannot set mode.", 47);
 		return;
 	}
-	if (mode == "-k" && (client->isOperator() == true))
+	if (mode == "-k" && (client->is_operator() == true))
 	{
-		channel->setChannelKey("");
-		channel->broadcastMessage("MODE " + channel->getchannel_name() + " -k " + client->getNickName());
+		channel->set_channel_key("");
+		channel->broadcast_message("MODE " + channel->get_channel_name() + " -k " + client->get_nick_name());
 	}
-	else if (mode == "-l" && (client->isOperator() == true))
+	else if (mode == "-l" && (client->is_operator() == true))
 	{
-		channel->setUserLimit(1000);
-		channel->broadcastMessage("MODE " + channel->getchannel_name() + " -l " + client->getNickName());
+		channel->set_user_limit(1000);
+		channel->broadcast_message("MODE " + channel->get_channel_name() + " -l " + client->get_nick_name());
 	}
-	else if (mode == "-n" && (client->isOperator() == true))
+	else if (mode == "-n" && (client->is_operator() == true))
 	{
-		channel->setNoExternalMessages(false);
-		channel->broadcastMessage("MODE " + channel->getchannel_name() + " -n " + client->getNickName());
+		channel->set_no_external_messages(false);
+		channel->broadcast_message("MODE " + channel->get_channel_name() + " -n " + client->get_nick_name());
 	}
-	else if (mode == "-o" && (client->isOperator() == true))
+	else if (mode == "-o" && (client->is_operator() == true))
 	{
 		Client* target_client = Server::get_instance()->get_client(modeParams);
 		if (!target_client)
 		{
-			client->sendMessage(":" + client->getHostName() + " 401 " + client->getNickName() + " " + modeParams + " :No such nick/channel\r\n");
+			client->send_message(":" + client->get_host_name() + " 401 " + client->get_nick_name() + " " + modeParams + " :No such nick/channel\r\n");
 			return;
 		}
-		if (target_client->getNickName() != channel->getChannelOwner()->getNickName())
+		if (target_client->get_nick_name() != channel->get_channel_owner()->get_nick_name())
 		{
-			target_client->setOperator(false);
-			channel->broadcastMessage("MODE " + channel->getchannel_name() + " -o " + target_client->getNickName());
+			target_client->set_operator(false);
+			channel->broadcast_message("MODE " + channel->get_channel_name() + " -o " + target_client->get_nick_name());
 		}
 	}
-	else if (mode == "-m" && client->isOperator() == true)
+	else if (mode == "-m" && client->is_operator() == true)
 	{
-		channel->setModerated(false);
-		channel->broadcastMessage("MODE " + channel->getchannel_name() + " -m " + client->getNickName());
+		channel->set_moderated(false);
+		channel->broadcast_message("MODE " + channel->get_channel_name() + " -m " + client->get_nick_name());
 	}
 	else
-		client->sendMessage(":" + client->getHostName() + " 501 " + client->getNickName() + " :Unknown MODE flag");
+		client->send_message(":" + client->get_host_name() + " 501 " + client->get_nick_name() + " :Unknown MODE flag");
 }
 
-std::vector<std::string> Channel::getChannelClientNickNames() const
+std::vector<std::string> Channel::get_Channel_Client_Nick_Names() const
 {
 	vector<string> nickNames;
 	for (vector<Client*>::const_iterator it = clients.begin(); it != clients.end(); ++it)
 	{
-		nickNames.push_back((*it)->getNickName());
+		nickNames.push_back((*it)->get_nick_name());
 	}
 	return nickNames;
 }
 
-string Channel::getExistingUsersNickList() const
+string Channel::get_existing_users_nick_list() const
 {
 	string nickList;
 	for (std::vector<Client*>::const_iterator it = clients.begin(); it != clients.end(); ++it)
@@ -183,7 +183,7 @@ string Channel::getExistingUsersNickList() const
 		if (it != clients.begin())
 			nickList += " ";
 
-		nickList += (*it)->getNickName();
+		nickList += (*it)->get_nick_name();
 	}
 	return nickList;
 }

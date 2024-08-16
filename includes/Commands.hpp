@@ -125,9 +125,9 @@ class Cap
 		static void cap( Client* client, vector<string> commandParts);
 };
 
-void sendChannelMessage( Client* client, string channel_name, string message, Server* srv );
-void sendPrivateMessage( Client* client, string target, string message, Server* srv );
-string mergeString(const vector<string>& parts, const string& delimiter);
+void send_channel_message( Client* client, string channel_name, string message, Server* srv );
+void send_private_message( Client* client, string target, string message, Server* srv );
+string merge_string(const vector<string>& parts, const string& delimiter);
 string atrim(const std::string& str);
 string strim(const string& str);
 

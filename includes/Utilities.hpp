@@ -50,7 +50,7 @@ using namespace std;
 #define ERR_USERNOTINCHANNEL(source, nick, channel) "441 " + source + " " + nick + " " + channel + " :They aren't on that channel"
 #define ERR_NONICKNAMEGIVEN(source) "431 " + source + " :No nickname given"
 #define ERR_ERRONEUSNICKNAME(source, nick) "432 " + source + " " + nick + " :Erroneous nickname"
-#define ERR_NICKNAMEINUSE(source, nick) "433 " + source + " " + nick + " :Nickname is already in use"
+#define ERR_nick_nameINUSE(source, nick) "433 " + source + " " + nick + " :Nickname is already in use"
 #define ERR_NICKCOLLISION(source, nick) "436 " + source + " " + nick + " :Nickname collision KILL"
 #define ERR_INVALIDCAPCMD(source) "410 " + source + " :Invalid CAP subcommand"
 #define ERR_NOTEXTTOSEND(source) "412 " + source + " :No text to send"

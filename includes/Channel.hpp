@@ -20,9 +20,9 @@ class Channel
 		vector<Client*> clients;
 		Client* _channelOwner;
 
-		string	_channelKey;
-		int		_userLimit;
-		bool	_noExternalMessages;
+		string	_channel_key;
+		int		_user_limit;
+		bool	_no_external_messages;
 		bool	_moderated;
 
 		Channel();
@@ -33,32 +33,31 @@ class Channel
 		Channel ( const string& channel_name, const string& channelKey, Client* channelOwner );
 		~Channel();
 
-		string getchannel_name() const { return _channel_name; }
-		Client* getChannelOwner() const { return _channelOwner; }
+		string get_channel_name() const { return _channel_name; }
+		Client* get_channel_owner() const { return _channelOwner; }
 
-		string getChannelKey() const { return _channelKey; }
-		bool isUserOnChannel( Client* client ) const;
-		int getUserLimit() const { return _userLimit; }
-		int getChannelClientCount() const { return clients.size(); }
-		bool getNoExternalMessages() const { return _noExternalMessages; }
-		vector<string> getChannelClientNickNames() const;
-		string getExistingUsersNickList() const;
-		bool getModerated() const { return _moderated; }
+		string get_channel_key() const { return _channel_key; }
+		bool is_user_on_channel( Client* client ) const;
+		int get_user_limit() const { return _user_limit; }
+		int get_channel_client_count() const { return clients.size(); }
+		bool get_no_external_messages() const { return _no_external_messages; }
+		vector<string> get_Channel_Client_Nick_Names() const;
+		string get_existing_users_nick_list() const;
+		bool get_moderated() const { return _moderated; }
 
-		void setChannelOwner( Client* client ){ _channelOwner = client ;};
-		void setChannelKey( const string& chanelKey ) { _channelKey = chanelKey; }
-		void setUserLimit( int userLimit ) { _userLimit = userLimit; }
-		void setNoExternalMessages( bool noExternalMessages ) { _noExternalMessages = noExternalMessages; }
+		void set_channel_owner( Client* client ){ _channelOwner = client ;};
+		void set_channel_key( const string& chanelKey ) { _channel_key = chanelKey; }
+		void set_user_limit( int userLimit ) { _user_limit = userLimit; }
+		void set_no_external_messages( bool noExternalMessages ) { _no_external_messages = noExternalMessages; }
 
-		void setModerated( bool isOwner ) { _moderated = isOwner; }
-		void broadcastMessage( const string& message ) const;
-		void broadcastMessage( const string& message, Client* exceptClient ) const;
+		void set_moderated( bool isOwner ) { _moderated = isOwner; }
+		void broadcast_message( const string& message ) const;
+		void broadcast_message( const string& message, Client* exceptClient ) const;
 
-		void addClient( Client* client );
-		void removeUserFromChannel( Client* client );
-		void kickClient( Client* client, Client* target, const string& reason = "" );
-		void setUpModeChannel(Channel* channel, Client* client, string& mode, string& modeParams);
-		void setLowModeChannel(Channel* channel, Client* client, string& mode, string& modeParams);
+		void add_client( Client* client );
+		void remove_user_from_channel( Client* client );
+		void set_up_mode_channel(Channel* channel, Client* client, string& mode, string& modeParams);
+		void set_low_mode_channel(Channel* channel, Client* client, string& mode, string& modeParams);
 };
 
 #endif

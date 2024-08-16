@@ -2,7 +2,7 @@
 
 void Server::process_partial_commands(int client_socket_fd)
 {
-	string& client_buffer = client_buffers[client_socket_fd].getBuffer();
+	string& client_buffer = client_buffers[client_socket_fd].get_buffer();
 	size_t endOfCommand;
 	string command;
 	if (client_buffer[0] == '/')
@@ -34,20 +34,23 @@ void Server::handle_client(int client_socket_fd)
 	char tempBuffer[BUFFER_SIZE];
 	memset(tempBuffer, 0, BUFFER_SIZE);
 	ssize_t received = recv(client_socket_fd, tempBuffer, BUFFER_SIZE - 1, 0);
-	if (received > 0) {
-		client_buffers[client_socket_fd].appendtoBuffer(string(tempBuffer, received));
+	if (received > 0)
+	{
+		client_buffers[client_socket_fd].append_to_buffer(string(tempBuffer, received));
 		cout << "Received: " << tempBuffer << endl;
 		process_partial_commands(client_socket_fd);
-	} else if (received == 0 || errno == ECONNRESET) {
+	} else if (received == 0 || errno == ECONNRESET)
+	{
 		FD_CLR(client_socket_fd, &read_set);
 		clientDisconnect(client_socket_fd);
 		client_buffers.erase(client_socket_fd);
 	} else {
-		if (errno != EAGAIN && errno != EWOULDBLOCK) {
+		if (errno != EAGAIN && errno != EWOULDBLOCK)
+		{
 			FD_CLR(client_socket_fd, &read_set);
-			ErrorLogger("recv error", __FILE__, __LINE__);
 			close(client_socket_fd);
 			client_buffers.erase(client_socket_fd);
+			throw RuntimeError("recv error.");
 		}
 	}
 }
@@ -64,7 +67,7 @@ void Server::clientDisconnect(int client_socket_fd)
         remove_client_all_channels(it->second);
         it->second->leave();
         ostringstream message_streamDisconnect;
-        message_streamDisconnect << "Client " << it->second->getNickName() << " has disconnected.";
+        message_streamDisconnect << "Client " << it->second->get_nick_name() << " has disconnected.";
         log(message_streamDisconnect.str());
         FD_CLR(client_socket_fd, &read_set);
         close(client_socket_fd);
@@ -101,7 +104,7 @@ void Server::shut_down_server()
 	for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
 		Client* client = it->second;
 		if (client != NULL) {
-			client->sendMessage("Shutting down the server. Your connection is being terminated.");
+			client->send_message("Shutting down the server. Your connection is being terminated.");
 			remove_client_all_channels(client);
 			close(it->first);
 			delete client;

@@ -5,18 +5,18 @@ void Nick::nick(Client *client, vector<string> commandParts, Server *srv)
 {
     if (commandParts.size() < 2)
     {
-        client->sendReply(ERR_NONICKNAMEGIVEN(client->getNickName()));
+        client->send_reply(ERR_NONICKNAMEGIVEN(client->get_nick_name()));
         return;
     }
     string nickName = commandParts.at(1);
-    if (!client->getValidName(nickName))
+    if (!client->get_valid_name(nickName))
     {
-        client->sendReply(ERR_ERRONEUSNICKNAME(client->getNickName(), nickName));
+        client->send_reply(ERR_ERRONEUSNICKNAME(client->get_nick_name(), nickName));
         return;
     }
-    if (client->getNickName() == nickName)
+    if (client->get_nick_name() == nickName)
     {
-        client->sendReply(ERR_NICKNAMEINUSE(client->getNickName(), nickName));
+        client->send_reply(ERR_nick_nameINUSE(client->get_nick_name(), nickName));
         return;
     }
     const std::map<int, Client *> &clients = srv->get_all_clients();
@@ -27,12 +27,12 @@ void Nick::nick(Client *client, vector<string> commandParts, Server *srv)
         {
             continue;
         }
-        if (regUser != client && regUser->getNickName() == nickName)
+        if (regUser != client && regUser->get_nick_name() == nickName)
         {
-            client->sendReply(ERR_NICKNAMEINUSE(client->getNickName(), nickName));
+            client->send_reply(ERR_nick_nameINUSE(client->get_nick_name(), nickName));
             return;
         }
     }
-    client->sendMessage(":" + client->getNickName() + " NICK " + nickName);
-    client->setNickName(nickName);
+    client->send_message(":" + client->get_nick_name() + " NICK " + nickName);
+    client->set_nick_name(nickName);
 }

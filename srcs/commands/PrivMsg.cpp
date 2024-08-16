@@ -5,15 +5,15 @@ void PrivMsg::privMsg(Client *client, vector<string> commandParts, Server *srv)
 {
     if (commandParts.size() < 2)
     {
-        client->sendReply(ERR_NEEDMOREPARAMS(client->getNickName(), "PRIVMSG"));
+        client->send_reply(ERR_NEEDMOREPARAMS(client->get_nick_name(), "PRIVMSG"));
         return;
     }
-    string commandString = mergeString(commandParts, " ");
+    string commandString = merge_string(commandParts, " ");
     size_t targetStart = commandString.find("PRIVMSG") + 8;
     size_t messageStart = commandString.find(" :", targetStart);
     if (messageStart == string::npos)
     {
-        client->sendReply(ERR_NOTEXTTOSEND(client->getNickName()));
+        client->send_reply(ERR_NOTEXTTOSEND(client->get_nick_name()));
         return;
     }
     string target = commandString.substr(targetStart, messageStart - targetStart);
@@ -21,49 +21,49 @@ void PrivMsg::privMsg(Client *client, vector<string> commandParts, Server *srv)
     string message = commandString.substr(messageStart + 2);
     if (target.at(0) == '#')
     {
-        sendChannelMessage(client, target, message, srv);
+        send_channel_message(client, target, message, srv);
     }
     else
     {
-        sendPrivateMessage(client, target, message, srv);
+        send_private_message(client, target, message, srv);
     }
 }
 
-void sendChannelMessage(Client *client, string channel_name, string message, Server *srv)
+void send_channel_message(Client *client, string channel_name, string message, Server *srv)
 {
     string bot_name = "reepNaoBot";
     Client *bot = srv->get_client(bot_name);
-    Channel *channel = srv->getChannel(channel_name);
+    Channel *channel = srv->get_channel(channel_name);
     if (channel == NULL)
     {
-        client->sendReply(ERR_NOSUCHCHANNEL(client->getNickName(), channel_name));
+        client->send_reply(ERR_NOSUCHCHANNEL(client->get_nick_name(), channel_name));
         return;
     }
-    if (channel->getModerated() && !client->isOperator())
+    if (channel->get_moderated() && !client->is_operator())
     {
-        client->sendReply(ERR_NOCANNOTSENDTOCHAN(client->getNickName(), channel_name));
+        client->send_reply(ERR_NOCANNOTSENDTOCHAN(client->get_nick_name(), channel_name));
         return;
     }
-    if (channel->getNoExternalMessages() && !channel->isUserOnChannel(client))
+    if (channel->get_no_external_messages() && !channel->is_user_on_channel(client))
     {
-        client->sendReply(ERR_NOCANNOTSENDTOCHAN(client->getNickName(), channel_name));
+        client->send_reply(ERR_NOCANNOTSENDTOCHAN(client->get_nick_name(), channel_name));
         return;
     }
-    channel->broadcastMessage(":" + client->getPrefix() + " PRIVMSG " + channel_name + " :" + message, client);
-    bot->sendMessage(":" + client->getPrefix() + " PRIVMSG " + channel_name + " :" + message);
+    channel->broadcast_message(":" + client->get_prefix() + " PRIVMSG " + channel_name + " :" + message, client);
+    bot->send_message(":" + client->get_prefix() + " PRIVMSG " + channel_name + " :" + message);
 }
 
-void sendPrivateMessage(Client *client, string target, string message, Server *srv)
+void send_private_message(Client *client, string target, string message, Server *srv)
 {
     Client *target_client = srv->get_client(target);
     string bot_name = "reepNaoBot";
     Client *bot = srv->get_client(bot_name);
     if (target_client == NULL)
     {
-        client->sendReply(ERR_NOSUCHNICK(client->getNickName(), target));
+        client->send_reply(ERR_NOSUCHNICK(client->get_nick_name(), target));
         return;
     }
-    target_client->sendMessage(":" + client->getPrefix() + " PRIVMSG " + target + " :" + message);
+    target_client->send_message(":" + client->get_prefix() + " PRIVMSG " + target + " :" + message);
     if (bot_name != target)
-        bot->sendMessage(":" + client->getPrefix() + " PRIVMSG " + target + " :" + message);
+        bot->send_message(":" + client->get_prefix() + " PRIVMSG " + target + " :" + message);
 }

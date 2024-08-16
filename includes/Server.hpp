@@ -91,7 +91,7 @@ class Server
 		void setSrvPass(const string& pass);
 		string get_server_password() const{return password;};
 		void addChannel( Channel* channel );
-		Channel* getChannel( string& channel_name );
+		Channel* get_channel( string& channel_name );
 		bool channel_exists( const string& channel_name );
 		bool verify_server_password(const string& pass);
 		void remove_channel(const string& channel );

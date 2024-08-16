@@ -4,7 +4,7 @@ void Mode::mode(Client *client, vector<string> commandParts, Server *srv)
 {
     if (commandParts.size() < 2)
     {
-        client->sendMessage(":" + client->getHostName() + " 461 " + client->getNickName() + " MODE :Not enough parameters");
+        client->send_message(":" + client->get_host_name() + " 461 " + client->get_nick_name() + " MODE :Not enough parameters");
         return;
     }
     string atargetE = commandParts.at(1);
@@ -12,16 +12,16 @@ void Mode::mode(Client *client, vector<string> commandParts, Server *srv)
     string modeParams = "100";
     if (atargetE.empty())
     {
-        client->sendMessage(":" + client->getHostName() + " 403 " + client->getNickName() + " " + atargetE + " :No such channel\r\n");
+        client->send_message(":" + client->get_host_name() + " 403 " + client->get_nick_name() + " " + atargetE + " :No such channel\r\n");
         return;
     }
     else if (atargetE.at(0) == '#')
     {
         string atarget = atrim(atargetE);
-        Channel *channel = srv->getChannel(atarget);
+        Channel *channel = srv->get_channel(atarget);
         if (!channel)
         {
-            client->sendMessage(":" + client->getHostName() + " 403 " + client->getNickName() + " " + atargetE + " :No such channel\r\n");
+            client->send_message(":" + client->get_host_name() + " 403 " + client->get_nick_name() + " " + atargetE + " :No such channel\r\n");
             return;
         }
         if (mode.empty())
@@ -31,24 +31,24 @@ void Mode::mode(Client *client, vector<string> commandParts, Server *srv)
             if (commandParts.size() > 3)
             {
                 modeParams = commandParts.at(3);
-                channel->setUpModeChannel(channel, client, mode, modeParams);
+                channel->set_up_mode_channel(channel, client, mode, modeParams);
             }
             else
-                channel->setUpModeChannel(channel, client, mode, modeParams);
+                channel->set_up_mode_channel(channel, client, mode, modeParams);
         }
         else if (mode.at(0) == '-')
         {
             if (commandParts.size() > 3)
             {
                 modeParams = commandParts.at(3);
-                channel->setLowModeChannel(channel, client, mode, modeParams);
+                channel->set_low_mode_channel(channel, client, mode, modeParams);
             }
             else
-                channel->setLowModeChannel(channel, client, mode, modeParams);
+                channel->set_low_mode_channel(channel, client, mode, modeParams);
         }
         else
-            client->sendMessage(":" + client->getHostName() + " 501 " + client->getNickName() + " :Invalid MODE flag");
+            client->send_message(":" + client->get_host_name() + " 501 " + client->get_nick_name() + " :Invalid MODE flag");
     }
     else
-        client->sendMessage(":" + client->getHostName() + " 501 " + client->getNickName() + " :Invalid MODE flag");
+        client->send_message(":" + client->get_host_name() + " 501 " + client->get_nick_name() + " :Invalid MODE flag");
 }
