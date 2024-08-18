@@ -17,16 +17,3 @@ void Cap::cap(Client *client, const vector<string> commandParts)
         client->send_reply(ERR_INVALIDCAPCMD(client->get_nick_name()));
     }
 }
-/* -----------------------------
-cap   *
-nick  *
-pass   *
-notice*
-mode  *
-kick  *
-part  *
-join  *
-privmsg*
-quit  * 
-user  *
------------------------------*/
