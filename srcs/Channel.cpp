@@ -80,7 +80,7 @@ void Channel::set_up_mode_channel(Channel* channel, Client* client, string& mode
 {
 	if (!channel || !client)
 	{
-		write(2, "Channel or Client is null, cannot set mode.", 43);
+		std::cerr<< "Channel or Client is null, cannot set mode."std::endl;
 		return;
 	}
 	if (mode == "+k" && (client->is_operator() == true))

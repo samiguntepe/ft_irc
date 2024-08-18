@@ -5,7 +5,7 @@ void User::user(Client *client, vector<string> commandParts, Server *srv)
 {
     if (!client || !srv)
     {
-        write(2, "Error: client or srv is null\n", 29);
+        std::cerr << "Error: client or srv is null"<<std::endl;
         return;
     }
     if (client->is_registered())
