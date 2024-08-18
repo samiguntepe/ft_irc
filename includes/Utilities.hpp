@@ -68,7 +68,7 @@ static inline void ErrorLogger(string messageInfo, const char* fileInfo, int lin
 	if (isFatal) {
 		throw runtime_error(messageInfo);
 	}
-	write(STDERR_FILENO, messageInfo.c_str(), messageInfo.length());
+	std::cerr << messageInfo;
 }
 
 static inline void log(const string& message) {
@@ -89,7 +89,7 @@ static inline void log(const string& message) {
 	oss << "\033[0;34m[" << timeStr << "]\033[0m" << message << std::endl;
 
 	string outputStr = oss.str();
-	write(STDOUT_FILENO, outputStr.c_str(), outputStr.size());
+	std::cout << outputStr;
 }
 
 #endif

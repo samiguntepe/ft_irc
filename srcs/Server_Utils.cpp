@@ -61,7 +61,7 @@ void Server::clientDisconnect(int client_socket_fd)
     {
         std::map<int, Client*>::iterator it = clients.find(client_socket_fd);
         if (it == clients.end()) {
-            write(STDOUT_FILENO, "Client not found for removal.\n", 30);
+      	std::cout << "Client not found for removal." << std::endl;
             return;
         }
         remove_client_all_channels(it->second);
@@ -76,7 +76,7 @@ void Server::clientDisconnect(int client_socket_fd)
     }
     catch (const std::exception &e)
     {
-        write(STDOUT_FILENO, e.what(), strlen(e.what()));
+		std::cerr << e.what() << std::endl;
     }
 }
 
@@ -99,8 +99,7 @@ void Server::signal_handler(int signum)
 
 void Server::shut_down_server()
 {
-	string outmessage = "Shutting down the server...\n";
-	write(STDOUT_FILENO, outmessage.c_str(), outmessage.size());
+	std::cout << "Shutting down the server..." << std::endl;
 	for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
 		Client* client = it->second;
 		if (client != NULL) {
@@ -120,6 +119,5 @@ void Server::shut_down_server()
 		_bot = NULL;
 	}
 	FD_ZERO(&read_set);
-	string outmessage2 = "The server has been shut down.\n";
-	write(STDOUT_FILENO, outmessage2.c_str(), outmessage2.size());
+	std::cout <<"The server has been shut down." std::cout;
 }

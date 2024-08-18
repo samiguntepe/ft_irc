@@ -46,9 +46,7 @@ void Part::partChannel(Client* client, string channel_name, Server* srv)
    	client->send_message( "You left the channel " + channel_name );
     if (channel->get_channel_client_count() == 0 && srv->channel_exists(channel_name))
     {
-   		string channel_name = channel->get_channel_name();
-		string message = "Channel " + channel_name + " is empty, deleting.\n";
-		write( 1, message.c_str(), message.length() );
+   	    std::cout << "Channel " << channel->get_channel_name() << " is empty, deleting.\n";
 		srv->remove_channel(channel_name);
     }
 }

@@ -124,7 +124,7 @@ void Channel::set_low_mode_channel(Channel* channel, Client* client, string& mod
 {
 	if (!channel || !client)
 	{
-		write(2, "Channel or Client is not valid, cannot set mode.", 47);
+		std::cerr<< "Channel or Client is not valid, cannot set mode.";
 		return;
 	}
 	if (mode == "-k" && (client->is_operator() == true))

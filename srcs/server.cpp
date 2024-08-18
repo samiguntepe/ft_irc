@@ -153,7 +153,7 @@ void Server::start()
 	{
 		delete _bot;
 		_bot = NULL;
-		write(STDOUT_FILENO, e.what(), strlen(e.what()));
+		std::cerr << e.what();
 	}
 	while (true)
 	{
