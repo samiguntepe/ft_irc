@@ -1,5 +1,4 @@
-#ifndef UTILITIES_HPP
-#define UTILITIES_HPP
+#pragma once
 
 #include <ctime>
 #include <string>
@@ -28,7 +27,7 @@ using namespace std;
 #define FAILED_SOCKET_DOMAIN "Not supported domain"
 #define FAILED_SOCKET_RECEIVE "Failed to receive socket"
 #define BACKLOG_SIZE 100
-#define MAXclients 100
+#define MAX_CLIENTS 100
 #define ERROR_SOCKET_SEND "Error while sending a message to a client!"
 #define WELCOME_MESSAGE(source3, source) "Welcome to the " + source3 + " " + source + "!"
 #define RPL_NAMREPLY(source, channel, nickList) ":" + source + " 353 " + source + " = " + channel + " :" + nickList
@@ -50,7 +49,7 @@ using namespace std;
 #define ERR_USERNOTINCHANNEL(source, nick, channel) "441 " + source + " " + nick + " " + channel + " :They aren't on that channel"
 #define ERR_NONICKNAMEGIVEN(source) "431 " + source + " :No nickname given"
 #define ERR_ERRONEUSNICKNAME(source, nick) "432 " + source + " " + nick + " :Erroneous nickname"
-#define ERR_nick_nameINUSE(source, nick) "433 " + source + " " + nick + " :Nickname is already in use"
+#define ERR_NICKNAMEINUSE(source, nick) "433 " + source + " " + nick + " :Nickname is already in use"
 #define ERR_NICKCOLLISION(source, nick) "436 " + source + " " + nick + " :Nickname collision KILL"
 #define ERR_INVALIDCAPCMD(source) "410 " + source + " :Invalid CAP subcommand"
 #define ERR_NOTEXTTOSEND(source) "412 " + source + " :No text to send"
@@ -68,7 +67,7 @@ static inline void ErrorLogger(string messageInfo, const char* fileInfo, int lin
 	if (isFatal) {
 		throw runtime_error(messageInfo);
 	}
-	std::cerr << messageInfo;
+	write(STDERR_FILENO, messageInfo.c_str(), messageInfo.length());
 }
 
 static inline void log(const string& message) {
@@ -89,7 +88,5 @@ static inline void log(const string& message) {
 	oss << "\033[0;34m[" << timeStr << "]\033[0m" << message << std::endl;
 
 	string outputStr = oss.str();
-	std::cout << outputStr;
+	write(STDOUT_FILENO, outputStr.c_str(), outputStr.size());
 }
-
-#endif

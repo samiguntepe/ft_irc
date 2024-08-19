@@ -1,8 +1,6 @@
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#pragma once
 
 #include <map>
-#include <iostream>
 #include <netdb.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -14,90 +12,69 @@
 #include <sys/types.h>
 #include <sys/select.h>
 #include <sys/socket.h>
-#include <exception>
 #include "Bot.hpp"
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "Commands.hpp"
 #include "Utilities.hpp"
 
-#define RED	"\033[0;31m"
-#define CODE "\033[m"
-
-
 class Client;
 class Channel;
 class Bot;
 
-class RuntimeError : public std::exception
-{
-	private:
-		   std::string message;
-
-	public:
-		RuntimeError(const std::string& msg) : message(msg) {}
-
-		virtual ~RuntimeError() throw() {}
-
-		virtual const char* what() const throw() {
-			  return message.c_str();
-		}
-};
+using namespace std;
 
 class Server
 {
 	private:
-		int server_fd;
-		const int server_socket_family;
-		const int server_socket_protocol;
-		int port_number;
-		std::string server_name;
-		std::string	password;
+		int _serverSocketFD;
+		const int _serverSocketFamily;
+		const int _serverSocketProtocol;
+		const int _serverSocketPort;
+		string _serverName;
+		string	_serverPass;
 
 		static Server *ins;
-		struct sockaddr_in server_address;
+		struct sockaddr_in serverAddress;
 		fd_set read_set;
 
-		map<int, Client> client_buffers;
-		map<int, Client*> clients;
-		map<std::string, Channel*> _channels;
+		map<int, Client> clientBuffers;
+		map<int, Client*> _clients;
+		map<string, Channel*> _channels;
 		Bot* _bot;
 
-		void socket_start();
-		void socket_init();
-		void socket_bind();
-		void socket_listen();
-		int socket_accept();
+		void socketStart();
+		void socketInit();
+		void socketBind();
+		void socketListen();
+		int socketAccept();
 
 	public:
 		Server();
-		Server ( int server_socket_family, int server_socket_protocol, string server_name );
+		Server ( int serverSocketFamily, int serverSocketProtocol, int serverSocketPort, string serverName );
 		~Server();
 
-		map<int, Client*> get_all_clients() {
-		return clients;
+		map<int, Client*> getAllClients() {
+		return _clients;
 		}
-		void start();
-		void shut_down_server();
+		void serverRun();
+		void shutdownSrv();
 
-		static void signal_handler(int signum);
-		static void signal_handler_server(int signum);
-		void handle_client(int client_socket_fd);
-		static Server* get_instance() {return ins;}
-		static void set_instance(Server* server){ins = server;}
-		Client* get_client( string& nickName );
-		void remove_client_all_channels( Client* client );
-		void clientDisconnect(int client_socket_fd);
+		static void signalHandler(int signum);
+		static void signalHandlerServer(int signum);
+		void handleClient(int clientSocketFD);
+		static Server* getInstance() {return ins;}
+		static void setInstance(Server* server){ins = server;}
+		Client* getClient( string& nickName );
+		void removeClientFromAllChannels( Client* client );
+		void clientDisconnect(int clientSocketFD);
 		void setSrvPass(const string& pass);
-		string get_server_password() const{return password;};
+		string getSrvPass() const{return _serverPass;}
 		void addChannel( Channel* channel );
-		Channel* get_channel( string& channel_name );
-		bool channel_exists( const string& channel_name );
-		bool verify_server_password(const string& pass);
-		void remove_channel(const string& channel );
-		void process_partial_commands(int client_socket_fd);
-		void arg_control(char **);
-		Bot* get_bot() { return _bot; }
+		Channel* getChannel( string& channelName );
+		bool channelExists( const string& channelName );
+		bool verifySrvPass(const string& pass);
+		void removeChannel(const string& channel );
+		void processPartialCommands(int clientSocketFD);
+		Bot* getBot() { return _bot; }
 };
-
-#endif

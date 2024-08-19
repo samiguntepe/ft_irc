@@ -2,7 +2,7 @@
 #include "../includes/Client.hpp"
 #include "../includes/Server.hpp"
 
-Bot::Bot(const string &serv, int port, const string &pass) : serv(serv), port(port), bot_password(pass), nick("Jarvis_bot"), user("BOT00"), realname("Jarvis")
+Bot::Bot(const string &serv, int port, const string &pass) : serv(serv), port(port), bot_password(pass), nick("reepNaoBot"), user("IRC00"), realname("recep")
 {
 	connect_server();
 }
@@ -19,7 +19,7 @@ void Bot::connect_server()
 	host = gethostbyname(serv.c_str());
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
-		RuntimeError("Error: Bot socket creation failed.\n");
+		write(STDOUT_FILENO, "Error: Bot socket creation failed.\n", 34);
 		exit(1);
 	}
 	server_addr.sin_family = AF_INET;
@@ -28,12 +28,12 @@ void Bot::connect_server()
 	memset(&(server_addr.sin_zero), '\0', 8);
 	if (connect(sock, (struct sockaddr *)&server_addr, sizeof(struct sockaddr)) == -1)
 	{
-		RuntimeError("Error: Bot socket connection failed.\n");
+		write(STDOUT_FILENO, "Error: Bot socket connection failed.\n", 36);
 		exit(1);
 	}
 	if (fcntl(sock, F_SETFL, O_NONBLOCK) == -1)
 	{
-		RuntimeError("Error: Bot socket fcntl failed.\n");
+		write(STDOUT_FILENO, "Error: Bot socket fcntl failed.\n", 32);
 		exit(1);
 	}
 	if (sock != -1)
@@ -53,12 +53,13 @@ void Bot::listen(Server *srv)
 	int bytes_read = recv(sock, buffer, BUFFER_SIZE - 1, 0);
 	if (bytes_read < 0)
 	{
-		RuntimeError("Recv is failed.");
+		string errrecv = "Error in recv: " + string(strerror(errno)) + "\n";
+		write(STDOUT_FILENO, errrecv.c_str(), errrecv.length());
 		return;
 	}
 	else if (bytes_read == 0)
 	{
-		RuntimeError("Connection closed by peer.\n");
+		write(STDOUT_FILENO, "Connection closed by peer.\n", 27);
 		return;
 	}
 	buffer[bytes_read] = '\0';
@@ -92,10 +93,10 @@ void Bot::process_message(const string &msg, Server *srv)
 				send_message(senderNick, "Language please " + senderNick + "!");
 			if (msg.find("whoami") != string::npos)
 			{
-				Client *client = srv->get_client(senderNick);
-				send_message(senderNick,"My nickname->"+ client->get_nick_name());
-				send_message(senderNick,"My realname->"+ client->get_real_name());
-				send_message(senderNick,"My hostname->"+ client->get_host_name());
+				Client *client = srv->getClient(senderNick);
+				send_message(senderNick,"My nickname->"+ client->getNickName());
+				send_message(senderNick,"My realname->"+ client->getRealName());
+				send_message(senderNick,"My hostname->"+ client->getHostName());
 			}
 		}
 	}
