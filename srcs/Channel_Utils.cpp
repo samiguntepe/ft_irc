@@ -35,13 +35,13 @@ void Server::removeClientFromAllChannels(Client* client)
 		channels.pop_back();
 		if (channel != NULL)
 		{
-			string channelName = channel->getChannelName();
+			string channelName = channel->get_channel_name();
 			string clientNick = client->getNickName();
 			channel->removeUserFromChannel(client);
 			client->removeChannel(channel);
 			string leaveMessage = clientNick + " has left the channel " + channelName;
 			log(leaveMessage);
-			if (channel->getChannelClientCount() == 0 && channelExists(channel->getChannelName()))
+			if (channel->get_channel_client_count() == 0 && channelExists(channel->get_channel_name()))
 			{
 				string message = "Channel " + channelName + " is empty, deleting.\n";
 				write(STDOUT_FILENO, message.c_str(), message.size());
@@ -53,14 +53,14 @@ void Server::removeClientFromAllChannels(Client* client)
 
 void Server::addChannel(Channel* channel)
 {
-	_channels.insert(std::make_pair(channel->getChannelName(), channel));
+	_channels.insert(std::make_pair(channel->get_channel_name(), channel));
 }
 
 bool Server::channelExists(const string& channelName)
 {
 	for (map<string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
 	{
-		if (it->second->getChannelName() == channelName)
+		if (it->second->get_channel_name() == channelName)
 			return true;
 	}
 	return false;
@@ -80,7 +80,7 @@ Channel* Server::getChannel(string& channelName)
 {
 	for (map<string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
 	{
-		if (it->second->getChannelName() == channelName)
+		if (it->second->get_channel_name() == channelName)
 			return it->second;
 	}
 	return NULL;

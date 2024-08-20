@@ -47,6 +47,6 @@ void User::user(Client *client, vector<string> commandParts, Server *srv)
     {
         Bot *bot = srv->getBot();
         if (bot)
-            bot->WelcomeMsg(client->getNickName());
+            bot->welcome_message(client->getNickName());
     }
 }

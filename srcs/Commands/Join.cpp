@@ -33,17 +33,17 @@ void Join::joinChannel(Client* client, string channelName, vector<string> comman
     if (srv->channelExists(channelName))
     {
         channel = srv->getChannel(channelName);
-        if (channel->isUserOnChannel(client))
+        if (channel->is_user_on_channel(client))
         {
             client->sendReply(ERR_USERONCHANNEL(client->getNickName(), channelName));
             return;
         }
-        else if (channel->getChannelKey() != channelPass)
+        else if (channel->get_channel_key() != channelPass)
         {
             client->sendReply(ERR_BADCHANNELKEY(client->getNickName(), channelName));
             return;
         }
-        else if (channel->getUserLimit() <= channel->getChannelClientCount())
+        else if (channel->get_user_limit() <= channel->get_channel_client_count())
         {
             client->sendReply(ERR_CHANNELISFULL(client->getNickName(), channelName));
             return;
@@ -52,11 +52,11 @@ void Join::joinChannel(Client* client, string channelName, vector<string> comman
     else
     {
         channel = new Channel(channelName, channelPass, client);
-        channel->setChannelOwner(client);
+        channel->set_channel_owner(client);
         client->setOperator(true);
         srv->addChannel(channel);
-        channel->setNoExternalMessages(true);
-		channel->broadcastMessage("MODE " + channel->getChannelName() + " +n " + client->getNickName());
+        channel->set_no_external_messages(true);
+		channel->broadcastMessage("MODE " + channel->get_channel_name() + " +n " + client->getNickName());
     }
     client->join(channel);
 }

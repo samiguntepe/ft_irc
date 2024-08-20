@@ -30,9 +30,9 @@ class Bot {
 		void send_re_message(const string &msg);
 		void listen(Server *srv);
 		void process_message(const string &msg, Server *srv);
-		int getSocket() const { return sock; }
+		int get_socket() const { return sock; }
 
-		void WelcomeMsg(const string &userNick) {
+		void welcome_message(const string &userNick) {
 			send_message(userNick, "Welcome to ft_irc Server");
 		}
 };

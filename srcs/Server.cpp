@@ -153,11 +153,11 @@ void Server::serverRun()
 	}
 	while (true)
 	{
-		int max_fd = _bot->getSocket();
+		int max_fd = _bot->get_socket();
 		int n = 0;
 		FD_ZERO(&read_set);
 		FD_SET(_serverSocketFD, &read_set);
-		FD_SET(_bot->getSocket(), &read_set);
+		FD_SET(_bot->get_socket(), &read_set);
 		for (map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); it++)
 		{
 			FD_SET((*it).second->getClientSocketFD(), &read_set);
@@ -176,7 +176,7 @@ void Server::serverRun()
 					break;
 				}
 			}
-			if (FD_ISSET(_bot->getSocket(), &read_set))
+			if (FD_ISSET(_bot->get_socket(), &read_set))
 				_bot->listen(this);
 		}
 	}

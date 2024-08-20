@@ -32,7 +32,7 @@ void Part::partChannel(Client* client, string channelName, Server* srv)
      	client->sendMessage( ":" + client->getHostName() + " 403 " + client->getNickName() + " " + channelName + " :No such channel" );
         return;
     }
-    if (!channel->isUserOnChannel(client))
+    if (!channel->is_user_on_channel(client))
     {
         client->sendMessage( ":" + client->getHostName() + " 442 " + client->getNickName() + " " + channelName + " :You're not on that channel" );
         return;
@@ -44,9 +44,9 @@ void Part::partChannel(Client* client, string channelName, Server* srv)
     channel->broadcastMessage(message, client);
 
    	client->sendMessage( "You left the channel " + channelName );
-    if (channel->getChannelClientCount() == 0 && srv->channelExists(channelName))
+    if (channel->get_channel_client_count() == 0 && srv->channelExists(channelName))
     {
-   		string channelName = channel->getChannelName();
+   		string channelName = channel->get_channel_name();
 		string message = "Channel " + channelName + " is empty, deleting.\n";
 		write( 1, message.c_str(), message.length() );
 		srv->removeChannel(channelName);

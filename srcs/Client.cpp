@@ -105,14 +105,14 @@ void Client::join(Channel* channel)
 	channel->addClient(this);
 	_channel.push_back(channel);
 	std::string nickList;
-	std::vector<std::string> nicknames = channel->getChannelClientNickNames();
+	std::vector<std::string> nicknames = channel->get_channel_client_nick_names();
 	for (std::vector<std::string>::iterator it = nicknames.begin(); it != nicknames.end(); ++it)
 	{
 		nickList += *it + " ";
 	}
-	sendReply(RPL_NAMREPLY(getPrefix(), channel->getChannelName(), nickList));
-	channel->broadcastMessage(RPL_JOIN(getPrefix(), channel->getChannelName()));
-	string message = _nickName + " " + " has joined to the channel " + channel->getChannelName();
+	sendReply(RPL_NAMREPLY(getPrefix(), channel->get_channel_name(), nickList));
+	channel->broadcastMessage(RPL_JOIN(getPrefix(), channel->get_channel_name()));
+	string message = _nickName + " " + " has joined to the channel " + channel->get_channel_name();
 	log(message);
 }
 

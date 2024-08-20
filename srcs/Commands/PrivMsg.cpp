@@ -39,12 +39,12 @@ void sendChannelMessage(Client *client, string channelName, string message, Serv
         client->sendReply(ERR_NOSUCHCHANNEL(client->getNickName(), channelName));
         return;
     }
-    if (channel->getModerated() && !client->isOperator())
+    if (channel->get_moderated() && !client->isOperator())
     {
         client->sendReply(ERR_NOCANNOTSENDTOCHAN(client->getNickName(), channelName));
         return;
     }
-    if (channel->getNoExternalMessages() && !channel->isUserOnChannel(client))
+    if (channel->get_no_external_messages() && !channel->is_user_on_channel(client))
     {
         client->sendReply(ERR_NOCANNOTSENDTOCHAN(client->getNickName(), channelName));
         return;
