@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COMMANDS_HPP
+#define COMMANDS_HPP
 
 #include <string>
 #include <cctype>
@@ -130,3 +131,5 @@ string mergeString(const vector<string>& parts, const string& delimiter);
 string atrim(const std::string& str);
 string strim(const string& str);
 
+
+#endif

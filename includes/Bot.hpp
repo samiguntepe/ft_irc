@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BOT_HPP
+#define BOT_HPP
 
 #include "Server.hpp"
 #include "Channel.hpp"
@@ -36,3 +37,5 @@ class Bot {
 		}
 };
 
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UTILITIES_HPP
+#define UTILITIES_HPP
 
 #include <ctime>
 #include <string>
@@ -90,3 +91,5 @@ static inline void log(const string& message) {
 	string outputStr = oss.str();
 	write(STDOUT_FILENO, outputStr.c_str(), outputStr.size());
 }
+
+#endif

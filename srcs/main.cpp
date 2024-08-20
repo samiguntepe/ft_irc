@@ -1,6 +1,6 @@
-#include "includes/Server.hpp"
-#include "includes/Client.hpp"
-#include "includes/Bot.hpp"
+#include "../includes/Server.hpp"
+#include "../includes/Client.hpp"
+#include "../includes/Bot.hpp"
 
 int main(int ac, char **av)
 {

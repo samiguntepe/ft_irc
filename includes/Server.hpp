@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SERVER_HPP
+#define SERVER_HPP
 
 #include <map>
 #include <netdb.h>
@@ -17,6 +18,10 @@
 #include "Channel.hpp"
 #include "Commands.hpp"
 #include "Utilities.hpp"
+
+
+#define RED	"\033[0;31m"
+#define CODE "\033[m"
 
 class Client;
 class Channel;
@@ -78,3 +83,5 @@ class Server
 		void processPartialCommands(int clientSocketFD);
 		Bot* getBot() { return _bot; }
 };
+
+#endif

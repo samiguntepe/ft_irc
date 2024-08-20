@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CHANNEL_HPP
+#define CHANNEL_HPP
 
 #include <string>
 #include <unistd.h>
@@ -59,3 +60,5 @@ class Channel
 		void setUpModeChannel(Channel* channel, Client* client, string& mode, string& modeParams);
 		void setLowModeChannel(Channel* channel, Client* client, string& mode, string& modeParams);
 };
+
+#endif

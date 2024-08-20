@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
 
 #include <string>
 #include <vector>
@@ -96,3 +97,5 @@ public:
 	void join( Channel* channel );
 	void removeChannel( Channel* channel );
 };
+
+#endif
