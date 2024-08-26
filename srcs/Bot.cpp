@@ -2,7 +2,7 @@
 #include "../includes/Client.hpp"
 #include "../includes/Server.hpp"
 
-Bot::Bot(const string &serv, int port, const string &pass) : serv(serv), port(port), bot_password(pass), nick("reepNaoBot"), user("IRC00"), realname("recep")
+Bot::Bot(const string &serv, int port, const string &pass) : serv(serv), port(port), bot_password(pass), nick("Jarvis42"), user("JRVS"), realname("Jarvis")
 {
 	connect_server();
 }

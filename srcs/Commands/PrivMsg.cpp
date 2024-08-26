@@ -31,7 +31,7 @@ void PrivMsg::privMsg(Client *client, vector<string> commandParts, Server *srv)
 
 void send_channel_message(Client *client, string channelName, string message, Server *srv)
 {
-    string bot_name = "reepNaoBot";
+    string bot_name = "Jarvis42";
     Client *bot = srv->get_client(bot_name);
     Channel *channel = srv->get_channel(channelName);
     if (channel == NULL)
@@ -56,7 +56,7 @@ void send_channel_message(Client *client, string channelName, string message, Se
 void send_private_message(Client *client, string target, string message, Server *srv)
 {
     Client *target_client = srv->get_client(target);
-    string bot_name = "reepNaoBot";
+    string bot_name = "Jarvis42";
     Client *bot = srv->get_client(bot_name);
     if (target_client == NULL)
     {
