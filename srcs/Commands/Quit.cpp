@@ -5,7 +5,7 @@ void Quit::quit(Client *client, vector<string> commandParts, Server *srv)
     string reason = commandParts.empty() ? "Leaving from Server" : commandParts.at(0);
     if (reason.at(0) == ':')
         reason.substr(1);
-    client->sendMessage(RPL_QUIT(client->getPrefix(), reason));
-    srv->removeClientFromAllChannels(client);
-    srv->clientDisconnect(client->getClientSocketFD());
+    client->send_message(RPL_QUIT(client->get_prefix(), reason));
+    srv->remove_client_from_all_channels(client);
+    srv->client_disconnect(client->get_client_socket_fd());
 }

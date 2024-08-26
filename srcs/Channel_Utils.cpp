@@ -1,6 +1,6 @@
 #include "../includes/Server.hpp"
 
-void Server::removeChannel(const std::string& channelName)
+void Server::remove_channel(const std::string& channelName)
 {
 	std::map<std::string, Channel*>::iterator it = _channels.find(channelName);
 	if (it != _channels.end())
@@ -24,11 +24,11 @@ void Server::removeChannel(const std::string& channelName)
 	}
 }
 
-void Server::removeClientFromAllChannels(Client* client)
+void Server::remove_client_from_all_channels(Client* client)
 {
-	if (client == NULL || !client->isSocketOpen())
+	if (client == NULL || !client->is_socket_open())
 		return;
-	std::vector<Channel*> channels = client->getChannel();
+	std::vector<Channel*> channels = client->get_channel();
 	while (!channels.empty())
 	{
 		Channel* channel = channels.back();
@@ -36,27 +36,25 @@ void Server::removeClientFromAllChannels(Client* client)
 		if (channel != NULL)
 		{
 			string channelName = channel->get_channel_name();
-			string clientNick = client->getNickName();
-			channel->removeUserFromChannel(client);
-			client->removeChannel(channel);
-			string leaveMessage = clientNick + " has left the channel " + channelName;
-			log(leaveMessage);
-			if (channel->get_channel_client_count() == 0 && channelExists(channel->get_channel_name()))
+			string clientNick = client->get_nick_name();
+			channel->remove_user_from_channel(client);
+			client->remove_channel(channel);
+			if (channel->get_channel_client_count() == 0 && channel_exists(channel->get_channel_name()))
 			{
 				string message = "Channel " + channelName + " is empty, deleting.\n";
 				write(STDOUT_FILENO, message.c_str(), message.size());
-				removeChannel(channelName);
+				remove_channel(channelName);
 			}
 		}
 	}
 }
 
-void Server::addChannel(Channel* channel)
+void Server::add_channel(Channel* channel)
 {
 	_channels.insert(std::make_pair(channel->get_channel_name(), channel));
 }
 
-bool Server::channelExists(const string& channelName)
+bool Server::channel_exists(const string& channelName)
 {
 	for (map<string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
 	{
@@ -66,17 +64,17 @@ bool Server::channelExists(const string& channelName)
 	return false;
 }
 
-Client* Server::getClient(string& nickName)
+Client* Server::get_client(string& nickName)
 {
 	for (map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
-		if (it->second->getNickName() == nickName)
+		if (it->second->get_nick_name() == nickName)
 			return it->second;
 	}
 	return NULL;
 }
 
-Channel* Server::getChannel(string& channelName)
+Channel* Server::get_channel(string& channelName)
 {
 	for (map<string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
 	{

@@ -42,7 +42,7 @@ private:
 
 	bool	userAuth;
 	bool	_isPass;
-	bool	_isOperator;
+	bool	_is_operator;
 	bool isValidName( const string& name ) const
 	{
 		const int MAX_LENGTH = 15;
@@ -63,39 +63,37 @@ public:
 	Client( int clientSocketFD, int clientPort, const string& hostName, const string& serverName );
 	~Client();
 
-	int getClientSocketFD() const { return _clientSocketFD; }
-	int getClientPort() const { return _clientPort; }
-	bool isSocketOpen() const { return _clientSocketFD != -1; }
-	bool isOperator() const { return _isOperator; }
-	bool getUserAuth() const { return userAuth; }
-	bool getIsPass() const { return _isPass; }
-	bool getValidName( const string& name ) const { return isValidName(name); }
-	string getNickName() const { return _nickName; }
-	string getUserName() const { return _userName; }
-	string getRealName() const { return _realName; }
-	string getHostName() const { return _hostName; }
-	string getPrefix() const;
-	string& getBuffer() { return buffer; }
+	int get_client_socket_fd() const { return _clientSocketFD; }
+	bool is_socket_open() const { return _clientSocketFD != -1; }
+	bool is_operator() const { return _is_operator; }
+	bool get_user_auth() const { return userAuth; }
+	bool get_is_pass() const { return _isPass; }
+	bool get_valid_name( const string& name ) const { return isValidName(name); }
+	string get_nick_name() const { return _nickName; }
+	string get_user_name() const { return _userName; }
+	string get_real_name() const { return _realName; }
+	string get_host_name() const { return _hostName; }
+	string get_prefix() const;
+	string& get_buffer() { return buffer; }
 
-	bool isRegistered() const { return _clientStatus == CLIENT_REGISTERED; }
+	bool is_registered() const { return _clientStatus == CLIENT_REGISTERED; }
 
-	vector<Channel*> getChannel() const { return _channel; }
-	void appendtoBuffer( const string& message ) {  buffer.append(message); }
-	void clearBuffer() { buffer.clear(); }
-	void setPass( bool isPass) { _isPass = isPass; }
-	void setNickName( const string& nickName );
-	void setUserName( const string& userName );
-	void setRealName( const string& realName ) { _realName = realName; }
-	void setStatus( ClientStatus clientStatus ) { _clientStatus = clientStatus; }
-	void setChannel( Channel* channel ) { _channel.push_back(channel); }
-	void setOperator( bool isOperator ) { _isOperator = isOperator; }
-	void setUserAuth( bool isAuth ) { userAuth = isAuth; }
-	void welcomeMessage();
-	void sendMessage( const string& message ) const;
-	void sendReply( const string& reply ) const;
+	vector<Channel*> get_channel() const { return _channel; }
+	void append_to_buffer( const string& message ) {  buffer.append(message); }
+	void set_pass( bool isPass) { _isPass = isPass; }
+	void set_nick_name( const string& nickName );
+	void set_user_name( const string& userName );
+	void set_real_name( const string& realName ) { _realName = realName; }
+	void set_status( ClientStatus clientStatus ) { _clientStatus = clientStatus; }
+	void set_channel( Channel* channel ) { _channel.push_back(channel); }
+	void set_operator( bool is_operator ) { _is_operator = is_operator; }
+	void set_user_auth( bool isAuth ) { userAuth = isAuth; }
+	void welcome_message();
+	void send_message( const string& message ) const;
+	void send_reply( const string& reply ) const;
 	void leave();
 	void join( Channel* channel );
-	void removeChannel( Channel* channel );
+	void remove_channel( Channel* channel );
 };
 
 #endif

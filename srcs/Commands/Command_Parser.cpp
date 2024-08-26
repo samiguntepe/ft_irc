@@ -21,7 +21,7 @@ string atrim(const std::string &str)
     return str.substr(start, end - start + 1);
 }
 
-string mergeString(const vector<string> &parts, const string &delimiter)
+string merge_string(const vector<string> &parts, const string &delimiter)
 {
     string result;
     for (size_t i = 0; i < parts.size(); ++i)
@@ -74,7 +74,7 @@ void CommandParser::handleCommand(Client *client, vector<string> commandParts, S
 {
     if (commandParts.size() < 1)
     {
-        client->sendMessage(":" + client->getHostName() + " 461 " + client->getNickName() + " Command :Not enough parameters");
+        client->send_message(":" + client->get_host_name() + " 461 " + client->get_nick_name() + " Command :Not enough parameters");
         return;
     }
     if (commandParts.at(0) == "/CAP" || commandParts.at(0) == "CAP")
@@ -83,14 +83,14 @@ void CommandParser::handleCommand(Client *client, vector<string> commandParts, S
         Pass::pass(client, commandParts, srv);
     else if (commandParts.at(0) == "/NICK" || commandParts.at(0) == "NICK")
         Nick::nick(client, commandParts, srv);
-    else if ((commandParts.at(0) == "/USER" || commandParts.at(0) == "USER") && client->getIsPass())
+    else if ((commandParts.at(0) == "/USER" || commandParts.at(0) == "USER") && client->get_is_pass())
         {
-        if(!client->getNickName().empty())
+        if(!client->get_nick_name().empty())
             User::user(client, commandParts, srv);
         else
-            client->sendMessage("firstly enter nickname");    
+            client->send_message("firstly enter nickname");    
         }
-    else if (client->getUserAuth())
+    else if (client->get_user_auth())
     {
         if (commandParts.at(0) == "/PRIVMSG" || commandParts.at(0) == "PRIVMSG")
             PrivMsg::privMsg(client, commandParts, srv);
@@ -108,13 +108,13 @@ void CommandParser::handleCommand(Client *client, vector<string> commandParts, S
             Kick::kick(client, commandParts, srv);
         else
         {
-            client->sendMessage("Invalid command");
+            client->send_message("Invalid command");
             return;
         }
     }
     else
     {
-        client->sendMessage(commandParts.at(0) + " Invalid command or invalid permission");
+        client->send_message(commandParts.at(0) + " Invalid command or invalid permission");
         return;
     }
 }

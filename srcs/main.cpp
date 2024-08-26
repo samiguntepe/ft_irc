@@ -17,8 +17,8 @@ int main(int ac, char **av)
 	std::string password = av[2];
 	try {
 		Server	srv(AF_INET, SOCK_STREAM, port, "First IRC");
-		srv.setSrvPass(password);
-		srv.serverRun();
+		srv.set_server_password(password);
+		srv.server_run();
 	}
 	catch (std::exception& e) {
 		write(2, e.what(), strlen(e.what()));

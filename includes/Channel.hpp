@@ -50,15 +50,14 @@ class Channel
 		void set_user_limit( int userLimit ) { _user_limit = userLimit; }
 		void set_no_external_messages( bool noExternalMessages ) { _no_external_messages = noExternalMessages; }
 
-		void setModerated( bool isOwner ) { _moderated = isOwner; }
-		void broadcastMessage( const string& message ) const;
-		void broadcastMessage( const string& message, Client* exceptClient ) const;
+		void set_moderated( bool isOwner ) { _moderated = isOwner; }
+		void broadcast_message( const string& message ) const;
+		void broadcast_message( const string& message, Client* exceptClient ) const;
 
-		void addClient( Client* client );
-		void removeUserFromChannel( Client* client );
-		void kickClient( Client* client, Client* target, const string& reason = "" );
-		void setUpModeChannel(Channel* channel, Client* client, string& mode, string& modeParams);
-		void setLowModeChannel(Channel* channel, Client* client, string& mode, string& modeParams);
+		void add_client( Client* client );
+		void remove_user_from_channel( Client* client );
+		void set_up_mode_channel(Channel* channel, Client* client, string& mode, string& modeParams);
+		void set_low_mode_channel(Channel* channel, Client* client, string& mode, string& modeParams);
 };
 
 #endif

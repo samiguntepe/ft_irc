@@ -48,40 +48,39 @@ class Server
 		map<string, Channel*> _channels;
 		Bot* _bot;
 
-		void socketStart();
-		void socketInit();
-		void socketBind();
-		void socketListen();
-		int socketAccept();
+		void socket_start();
+		void socket_init();
+		void socket_bind();
+		void socket_listen();
+		int socket_accept();
 
 	public:
 		Server();
 		Server ( int serverSocketFamily, int serverSocketProtocol, int serverSocketPort, string serverName );
 		~Server();
 
-		map<int, Client*> getAllClients() {
+		map<int, Client*> get_all_clients() {
 		return _clients;
 		}
-		void serverRun();
-		void shutdownSrv();
+		void server_run();
+		void shutdown_server();
 
-		static void signalHandler(int signum);
-		static void signalHandlerServer(int signum);
-		void handleClient(int clientSocketFD);
-		static Server* getInstance() {return ins;}
-		static void setInstance(Server* server){ins = server;}
-		Client* getClient( string& nickName );
-		void removeClientFromAllChannels( Client* client );
-		void clientDisconnect(int clientSocketFD);
-		void setSrvPass(const string& pass);
-		string getSrvPass() const{return _serverPass;}
-		void addChannel( Channel* channel );
-		Channel* getChannel( string& channelName );
-		bool channelExists( const string& channelName );
-		bool verifySrvPass(const string& pass);
-		void removeChannel(const string& channel );
-		void processPartialCommands(int clientSocketFD);
-		Bot* getBot() { return _bot; }
+		static void signal_handler(int signum);
+		void handle_client(int clientSocketFD);
+		static Server* get_instance() {return ins;}
+		static void set_instance(Server* server){ins = server;}
+		Client* get_client( string& nickName );
+		void remove_client_from_all_channels( Client* client );
+		void client_disconnect(int clientSocketFD);
+		void set_server_password(const string& pass);
+		string get_server_password() const{return _serverPass;}
+		void add_channel( Channel* channel );
+		Channel* get_channel( string& channelName );
+		bool channel_exists( const string& channelName );
+		bool verify_server_password(const string& pass);
+		void remove_channel(const string& channel );
+		void process_partial_commands(int clientSocketFD);
+		Bot* get_bot() { return _bot; }
 };
 
 #endif

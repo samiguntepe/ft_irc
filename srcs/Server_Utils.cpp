@@ -1,8 +1,8 @@
 #include "../includes/Server.hpp"
 
-void Server::processPartialCommands(int clientSocketFD)
+void Server::process_partial_commands(int clientSocketFD)
 {
-	string& clientBuffer = clientBuffers[clientSocketFD].getBuffer();
+	string& clientBuffer = clientBuffers[clientSocketFD].get_buffer();
 	size_t endOfCommand;
 	string command;
 	if (clientBuffer[0] == '/')
@@ -28,19 +28,19 @@ void Server::processPartialCommands(int clientSocketFD)
 	}
 }
 
-void Server::handleClient(int clientSocketFD)
+void Server::handle_client(int clientSocketFD)
 {
 	const size_t BUFFER_SIZE = 512;
 	char tempBuffer[BUFFER_SIZE];
 	memset(tempBuffer, 0, BUFFER_SIZE);
 	ssize_t received = recv(clientSocketFD, tempBuffer, BUFFER_SIZE - 1, 0);
 	if (received > 0) {
-		clientBuffers[clientSocketFD].appendtoBuffer(string(tempBuffer, received));
+		clientBuffers[clientSocketFD].append_to_buffer(string(tempBuffer, received));
 		cout << "Received: " << tempBuffer << endl;
-		processPartialCommands(clientSocketFD);
+		process_partial_commands(clientSocketFD);
 	} else if (received == 0 || errno == ECONNRESET) {
 		FD_CLR(clientSocketFD, &read_set);
-		clientDisconnect(clientSocketFD);
+		client_disconnect(clientSocketFD);
 		clientBuffers.erase(clientSocketFD);
 	} else {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
@@ -52,7 +52,7 @@ void Server::handleClient(int clientSocketFD)
 	}
 }
 
-void Server::clientDisconnect(int clientSocketFD)
+void Server::client_disconnect(int clientSocketFD)
 {
     try
     {
@@ -61,11 +61,8 @@ void Server::clientDisconnect(int clientSocketFD)
             write(STDOUT_FILENO, "Client not found for removal.\n", 30);
             return;
         }
-        removeClientFromAllChannels(it->second);
+        remove_client_from_all_channels(it->second);
         it->second->leave();
-        ostringstream messageStreamDisconnect;
-        messageStreamDisconnect << "Client " << it->second->getNickName() << " has disconnected.";
-        log(messageStreamDisconnect.str());
         FD_CLR(clientSocketFD, &read_set);
         close(clientSocketFD);
         delete it->second;
@@ -77,32 +74,32 @@ void Server::clientDisconnect(int clientSocketFD)
     }
 }
 
-void Server::setSrvPass(const string& pass) {
+void Server::set_server_password(const string& pass) {
 	_serverPass = pass;
 }
 
-bool Server::verifySrvPass(const string& pass) {
+bool Server::verify_server_password(const string& pass) {
 	if (_serverPass == pass) {
 		return true;
 	}
 	return false;
 }
 
-void Server::signalHandler(int signum)
+void Server::signal_handler(int signum)
 {
-	Server::getInstance()->shutdownSrv();
+	Server::get_instance()->shutdown_server();
 	exit(signum);
 }
 
-void Server::shutdownSrv()
+void Server::shutdown_server()
 {
 	string outmessage = "Shutting down the server...\n";
 	write(STDOUT_FILENO, outmessage.c_str(), outmessage.size());
 	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		Client* client = it->second;
 		if (client != NULL) {
-			client->sendMessage("Shutting down the server. Your connection is being terminated.");
-			removeClientFromAllChannels(client);
+			client->send_message("Shutting down the server. Your connection is being terminated.");
+			remove_client_from_all_channels(client);
 			close(it->first);
 			delete client;
 		}

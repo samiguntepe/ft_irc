@@ -10,8 +10,8 @@ Server::Server(int serverSocketFamily, int serverSocketProtocol, int serverSocke
 	_serverPass(""),
 	_bot(NULL)
 {
-	signal(SIGINT, signalHandler);
-	Server::setInstance(this);
+	signal(SIGINT, signal_handler);
+	Server::set_instance(this);
 	memset(&serverAddress, 0, sizeof(serverAddress));
 	FD_ZERO(&read_set);
 
@@ -38,7 +38,7 @@ Server::~Server()
 
 }
 
-void Server::socketStart()
+void Server::socket_start()
 {
 	_serverSocketFD = socket(_serverSocketFamily, _serverSocketProtocol, 0);
 	if (_serverSocketFD == -1)
@@ -56,7 +56,7 @@ void Server::socketStart()
 	}
 }
 
-void Server::socketInit()
+void Server::socket_init()
 {
 	switch (_serverSocketFamily)
 	{
@@ -72,7 +72,7 @@ void Server::socketInit()
 	}
 }
 
-void Server::socketBind()
+void Server::socket_bind()
 {
 	if (::bind(_serverSocketFD, reinterpret_cast<struct sockaddr*>(&serverAddress), sizeof(serverAddress)) == -1)
 	{
@@ -81,7 +81,7 @@ void Server::socketBind()
 	}
 }
 
-void Server::socketListen()
+void Server::socket_listen()
 {
 	if (listen(_serverSocketFD, BACKLOG_SIZE) == -1 )
 	{
@@ -92,7 +92,7 @@ void Server::socketListen()
 }
 
 
-int Server::socketAccept()
+int Server::socket_accept()
 {	
 	struct sockaddr_storage clientAddress;
 	socklen_t clientAddressLength = sizeof(clientAddress);
@@ -126,21 +126,18 @@ int Server::socketAccept()
 	Client* client = NULL;
 	client = new Client(clientSocketFD, ntohs(((struct sockaddr_in*)&clientAddress)->sin_port), hostname, _serverName);
 	_clients.insert(std::make_pair(clientSocketFD, client));
-	std::ostringstream messageStream;
-	messageStream << "\tNew Client: has connected.";
-	client->sendMessage("Connected to Server");
-	client->sendMessage("Enter the server password using /PASS");
-	log(messageStream.str());
+	client->send_message("Connected to Server");
+	client->send_message("Enter the server password using /PASS");
 	return clientSocketFD;
 }
 
-void Server::serverRun()
+void Server::server_run()
 {
-	socketStart();
-	socketInit();
-	socketBind();
-	socketListen();
-	signal(SIGINT, signalHandler);
+	socket_start();
+	socket_init();
+	socket_bind();
+	socket_listen();
+	signal(SIGINT, signal_handler);
 	try
 	{
 		_bot = new Bot("localhost", _serverSocketPort, _serverPass);
@@ -160,19 +157,19 @@ void Server::serverRun()
 		FD_SET(_bot->get_socket(), &read_set);
 		for (map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); it++)
 		{
-			FD_SET((*it).second->getClientSocketFD(), &read_set);
-			max_fd = std::max(max_fd, (*it).second->getClientSocketFD());
+			FD_SET((*it).second->get_client_socket_fd(), &read_set);
+			max_fd = std::max(max_fd, (*it).second->get_client_socket_fd());
 		}
 		n = select(max_fd + 1, &read_set, NULL, NULL, NULL);
 		if(n)
 		{
 			if (FD_ISSET(_serverSocketFD, &read_set))
-				socketAccept();
+				socket_accept();
 			for (map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); it++)
 			{
-				if (FD_ISSET((*it).second->getClientSocketFD(), &read_set))
+				if (FD_ISSET((*it).second->get_client_socket_fd(), &read_set))
 				{
-					handleClient((*it).second->getClientSocketFD());
+					handle_client((*it).second->get_client_socket_fd());
 					break;
 				}
 			}
