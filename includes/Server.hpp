@@ -1,86 +1,94 @@
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#pragma once
 
-#include <map>
-#include <netdb.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <csignal>
-#include <sstream>
+#include <iostream>
 #include <unistd.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <sys/select.h>
 #include <sys/socket.h>
-#include "Bot.hpp"
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/select.h>
+#include <vector>
+#include <map>
+#include <fcntl.h>
 #include "Client.hpp"
 #include "Channel.hpp"
-#include "Commands.hpp"
-#include "Utilities.hpp"
+#include "Utils.hpp"
 
-
-#define RED	"\033[0;31m"
-#define CODE "\033[m"
-
-class Client;
-class Channel;
-class Bot;
-
-using namespace std;
+class Server;
+typedef void (Server::*Commands)(std::vector<std::string>& , Client&);
+typedef std::vector<Client>::iterator cliIt;
+typedef std::vector<Channel>::iterator chanIt;
 
 class Server
 {
-	private:
-		int _serverSocketFD;
-		const int _serverSocketFamily;
-		const int _serverSocketProtocol;
-		const int _serverSocketPort;
-		string _serverName;
-		string	_serverPass;
+    private:
 
-		static Server *ins;
-		struct sockaddr_in serverAddress;
-		fd_set read_set;
+        int _serverFd;
+        int _botFd;
+        size_t _port;
+        std::string _password;
+        char _buffer[1024];
+        std::map<std::string, Commands> _commands;
+        std::vector<Channel> _channels;
+        std::vector<Client> _clients;
+        
+        fd_set _readFds;
+        fd_set _writeFds;
+        fd_set _readFdsSup;
+        fd_set _writeFdsSup;
+        int _fdCount;
+        bool flag;
 
-		map<int, Client> clientBuffers;
-		map<int, Client*> _clients;
-		map<string, Channel*> _channels;
-		Bot* _bot;
+        Server();
+        ~Server();
+        std::map<std::string, std::vector<std::string> > getParams(std::string const& str);
+        static Server* singleton;
+        void showRightGui(Client &cli, Channel &cha);
+        int isNickExist(std::string const&);
+        int getOpFd(std::string const& opName);
+        int clientIsInThere(Client&, std::string const&);
+        int isChannelExist(std::string const&);
+        int CheckNickDepends(std::vector<std::string>&, Client&);
+        void toChannel(std::vector<std::string>&, Client&);
+        void toClient(std::vector<std::string>&, Client&);
+        void createSocket();
+        void bindSocket(size_t const&);
+        void setPort(size_t const&);
+        void setPassword(std::string const&);
+        void printStatus();
+        void acceptRequest();
+        void readEvent(int*);
+        void writeEvent();
+        void initFds();
+        void initCommands();
+        void run();
+        void passChecker(Client&);
+        void kickClient(cliIt&);
+        void commandHandler(std::string&, Client&);
+        void modesOp(chanIt&, std::vector<std::string>& params, int* flag);
+        void modesLimit(chanIt&, std::vector<std::string>& params, int* flag);
+        void modesKey(chanIt&, std::vector<std::string>& params, int* flag);
+        void getAfterColon(std::vector<std::string>& params);
+        Channel& getChannel(std::string const&);
+        void BotNotice(std::vector<std::string>&, Client&);
 
-		void socket_start();
-		void socket_init();
-		void socket_bind();
-		void socket_listen();
-		int socket_accept();
 
-	public:
-		Server();
-		Server ( int serverSocketFamily, int serverSocketProtocol, int serverSocketPort, string serverName );
-		~Server();
-
-		map<int, Client*> get_all_clients() {
-		return _clients;
-		}
-		void server_run();
-		void shutdown_server();
-
-		static void signal_handler(int signum);
-		void handle_client(int clientSocketFD);
-		static Server* get_instance() {return ins;}
-		static void set_instance(Server* server){ins = server;}
-		Client* get_client( string& nickName );
-		void remove_client_from_all_channels( Client* client );
-		void client_disconnect(int clientSocketFD);
-		void set_server_password(const string& pass);
-		string get_server_password() const{return _serverPass;}
-		void add_channel( Channel* channel );
-		Channel* get_channel( string& channelName );
-		bool channel_exists( const string& channelName );
-		bool verify_server_password(const string& pass);
-		void remove_channel(const string& channel );
-		void process_partial_commands(int clientSocketFD);
-		Bot* get_bot() { return _bot; }
+        void Pass(std::vector<std::string>&, Client&);
+        void Nick(std::vector<std::string>&, Client&);
+        void Join(std::vector<std::string>&, Client&);
+        void Cap(std::vector<std::string>&, Client&);
+        void User(std::vector<std::string>&, Client&);
+        void Mode(std::vector<std::string>&, Client&);
+        void Who(std::vector<std::string>&, Client&);
+        void Quit(std::vector<std::string>&, Client&);
+        void Part(std::vector<std::string>&, Client&);
+        void Privmsg(std::vector<std::string>&, Client&);
+        void Kick(std::vector<std::string>&, Client&);
+        void Topic(std::vector<std::string>&, Client&);
+        void Notice(std::vector<std::string>&, Client&);
+        void Invite(std::vector<std::string>&, Client&);
+        void Bot(std::vector<std::string>&, Client&);
+    public:
+        void manageServer(size_t const &, std::string const &);
+        static Server* getInstance();
+        static void signalHandler(int);
 };
-
-#endif

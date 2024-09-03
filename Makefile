@@ -1,10 +1,26 @@
 NAME	= ircserv
 CC		= c++
 CFLAGS	= -Wall -Wextra -Werror -std=c++98
-SRCS	= srcs/main.cpp srcs/Server.cpp srcs/Client.cpp srcs/Channel.cpp srcs/Server_Utils.cpp srcs/Channel_Utils.cpp srcs/Bot.cpp \
-		srcs/commands/Cap.cpp srcs/commands/Command_Parser.cpp srcs/commands/Join.cpp srcs/commands/Kick.cpp srcs/commands/Mode.cpp \
-		srcs/commands/Nick.cpp srcs/commands/Notice.cpp srcs/commands/Part.cpp srcs/commands/Pass.cpp srcs/commands/PrivMsg.cpp \
-		srcs/commands/Quit.cpp srcs/commands/User.cpp
+SRCS	= ./srcs/Channel.cpp \
+		./srcs/main.cpp \
+		./srcs/Server.cpp \
+		./srcs/Utils.cpp \
+		./srcs/Utils_Server.cpp \
+		./srcs/commands/Bot.cpp \
+		./srcs/commands/Cap.cpp \
+		./srcs/commands/Invite.cpp \
+		./srcs/commands/Join.cpp \
+		./srcs/commands/Kick.cpp \
+		./srcs/commands/Mode.cpp \
+		./srcs/commands/Nick.cpp \
+		./srcs/commands/Notice.cpp \
+		./srcs/commands/Part.cpp \
+		./srcs/commands/Pass.cpp \
+		./srcs/commands/Privmsg.cpp \
+		./srcs/commands/Quit.cpp \
+		./srcs/commands/Topic.cpp \
+		./srcs/commands/User.cpp \
+		./srcs/commands/Who.cpp
 
 OBJS    = $(SRCS:.cpp=.o)
 GREEN	= \033[0;32m

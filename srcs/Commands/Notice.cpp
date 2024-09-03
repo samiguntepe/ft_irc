@@ -1,61 +1,33 @@
-#include "../../includes/Commands.hpp"
+#include "../../includes/Server.hpp"
 
-static void sendNoticeChannelMessage(Client *client, string channelName, string message, Server *srv)
+void Server::Notice(std::vector<std::string>& params, Client& cli)
 {
-    Channel *channel = srv->get_channel(channelName);
-    if (channel == NULL)
-    {
-        client->send_reply(ERR_NOSUCHCHANNEL(client->get_nick_name(), channelName));
-        return;
+    passChecker(cli);
+    if (params[0][0] == '#') {
+        Utils::writeMessage(cli._cliFd, "Cannot notice a channel\r\n");
+        return ;
     }
-    channel->broadcast_message(":" + client->get_prefix() + " NOTICE " + channelName + " :" + message);
-}
-
-static void sendNoticeMessage(Client *client, string target, string message, Server *srv)
-{
-    Client *target_client = srv->get_client(target);
-    if (target_client == NULL)
-    {
-        client->send_reply(ERR_NOSUCHNICK(client->get_nick_name(), target));
-        return;
+    if (params.size() < 2) {
+        Utils::writeMessage(cli._cliFd, ERR_NEEDMOREPARAMS(cli._nick, "NOTICE"));
+        return ;
     }
-    target_client->send_message(":" + client->get_prefix() + " NOTICE " + target + " :" + message);
-}
-
-void Notice::notice(Client *client, vector<string> commandParts, Server *srv)
-{
-    if (commandParts.size() < 3)
-    {
-        client->send_message(":" + client->get_host_name() + " 461 " + client->get_nick_name() + " NOTICE : Not enough parameters");
-        return;
+    if (cli._nick == params[0]) {
+        Utils::writeMessage(cli._cliFd, "Cannot notice yourself\r\n");
+        return ;
     }
-    string commandString = merge_string(commandParts, " ");
-    size_t targetStart = commandString.find("NOTICE") + 7;
-    size_t messageStart = commandString.find(" :", targetStart);
-    if (messageStart == string::npos)
-    {
-        client->send_message(":" + client->get_host_name() + " 412 " + client->get_nick_name() + "  NOTICE :No text to send");
-        return;
+    size_t flag = 0;
+    for (cliIt it = _clients.begin(); it != _clients.end(); ++it) {
+        if (it->_nick == params[0])
+        {
+            if (params[1][0] == ':')
+                getAfterColon(params);
+            flag = 1;
+            it->_messageBox.push_back(RPL_NOTICE(cli._nick, params[0], params[1]));
+            FD_SET(it->_cliFd, &_writeFds);
+            break;
+        }
     }
-    string target = commandString.substr(targetStart, messageStart - targetStart);
-    string message = commandString.substr(messageStart + 2);
-    if (target.empty())
-    {
-        client->send_message(":" + client->get_host_name() + " 401 " + client->get_nick_name() + " NOTICE :No such nick/channel");
-        return;
-    }
-    if (message.empty())
-    {
-        client->send_message(":" + client->get_host_name() + " 412 " + client->get_nick_name() + " NOTICE :No text to send");
-        return;
-    }
-    target = strim(target);
-    if (target.at(0) == '#')
-    {
-        sendNoticeChannelMessage(client, target, message, srv);
-    }
-    else
-    {
-        sendNoticeMessage(client, target, message, srv);
+    if (flag == 0) {
+        Utils::writeMessage(cli._cliFd, ERR_NOSUCHNICK);
     }
 }

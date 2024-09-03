@@ -1,63 +1,16 @@
-#ifndef CHANNEL_HPP
-#define CHANNEL_HPP
+#pragma once
 
-#include <string>
-#include <unistd.h>
-#include <sstream>
-#include <vector>
-#include "Server.hpp"
-#include "Bot.hpp"
-#include "Client.hpp"
-
-class Client;
-
-using namespace std;
-
-class Channel
+class Client; class Channel
 {
-	private:
-		string _channel_name;
-		vector<Client*> _clients;
-		Client* _channel_owner;
+    public:
 
-		string	_channel_key;
-		int		_user_limit;
-		bool	_no_external_messages;
-		bool	_moderated;
+        size_t _userLimit;
+        std::string _name;
+        std::string _topic;
+        std::string _key;
+        std::string _opNick;
+        std::vector<Client> _channelClients;
+        Channel() : _userLimit(0), _name(""), _topic(""), _key(""), _opNick("") {}
 
-		Channel();
-		Channel( const Channel& copy );
-
-
-	public:
-		Channel ( const string& channelName, const string& channelKey, Client* channelOwner );
-		~Channel();
-
-		string get_channel_name() const { return _channel_name; }
-		Client* get_channel_owner() const { return _channel_owner; }
-
-		string get_channel_key() const { return _channel_key; }
-		bool is_user_on_channel( Client* client ) const;
-		int get_user_limit() const { return _user_limit; }
-		int get_channel_client_count() const { return _clients.size(); }
-		bool get_no_external_messages() const { return _no_external_messages; }
-		vector<string> get_channel_client_nick_names() const;
-		string get_existing_users_nick_list() const;
-		bool get_moderated() const { return _moderated; }
-
-		void set_channel_owner( Client* client ){ _channel_owner = client ;};
-		void set_channel_key( const string& chanelKey ) { _channel_key = chanelKey; }
-		void set_user_limit( int userLimit ) { _user_limit = userLimit; }
-		void set_no_external_messages( bool noExternalMessages ) { _no_external_messages = noExternalMessages; }
-
-		void set_moderated( bool isOwner ) { _moderated = isOwner; }
-		void broadcast_message( const string& message ) const;
-		void broadcast_message( const string& message, Client* exceptClient ) const;
-
-		void add_client( Client* client );
-		void remove_user_from_channel( Client* client );
-		void set_up_mode_channel(Channel* channel, Client* client, string& mode, string& modeParams);
-		void set_low_mode_channel(Channel* channel, Client* client, string& mode, string& modeParams);
+        std::vector<int> getFds() const;
 };
-
-#endif

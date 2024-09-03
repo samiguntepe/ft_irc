@@ -1,41 +1,30 @@
-#ifndef BOT_HPP
-#define BOT_HPP
+#pragma once
 
-#include "Server.hpp"
-#include "Channel.hpp"
-#include "Client.hpp"
+#include <iostream>
 #include <unistd.h>
-#include <string>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include "Utils.hpp"
 
-using namespace std;
+class Bot
+{
+    private:
 
-class Server;
+        int _fd;
+        int _port;
+        std::string _password;
+        static Bot* singleton;
+        
 
-class Bot {
-	private:
-		int		sock;
-		string	serv;
-		int		port;
-		string	bot_password;
-		string	nick;
-		string	user;
-		string	realname;
-
-	public:
-		Bot(const string &serv, int port, const string &pass);
-		~Bot();
-
-		void connect_server();
-		void send_message(const string &channel, const string &msg);
-		void send_re_message(const string &msg);
-		void listen(Server *srv);
-		void process_message(const string &msg, Server *srv);
-		int get_socket() const { return sock; }
-
-		void welcome_message(const string &userNick) {
-			send_message(userNick, "Welcome to ft_irc Server");
-		}
+        Bot(): _fd(0), _port(0), _password("") {};
+        ~Bot();
+        void setPort(int);
+        void setPasword(std::string const&);
+        void createSocket();
+        void run();
+        void execute(std::string const&);
+    public:
+        static Bot *getInstance();
+        void manageBot(int, std::string const&);
 };
-
-
-#endif

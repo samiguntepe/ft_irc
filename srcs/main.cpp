@@ -1,28 +1,18 @@
 #include "../includes/Server.hpp"
-#include "../includes/Client.hpp"
-#include "../includes/Bot.hpp"
+#include <signal.h>
 
 int main(int ac, char **av)
 {
-	if (ac != 3) {
-		write(2, "Usage: ./server <port> <password>\n", 34);
-		return 1;
-	}
-	int port = std::atoi(av[1]);
-	if (port < 1024 || port > 65535)
-	{
-		write(2, "Invalid port\n", 13);
-		return 1;
-	}
-	std::string password = av[2];
-	try {
-		Server	srv(AF_INET, SOCK_STREAM, port, "First IRC");
-		srv.set_server_password(password);
-		srv.server_run();
-	}
-	catch (std::exception& e) {
-		write(2, e.what(), strlen(e.what()));
-		return 1;
-	}
-	return 0;
+    try {
+        if (ac != 3)
+            throw std::runtime_error("./ircserv <port> <password>");
+        if (!Utils::portIsValid(av[1]))
+            throw std::runtime_error("invalid port; must be between 1024 and 49151");
+        Server *ptr = Server::getInstance();
+        signal(SIGINT, Server::signalHandler);
+        ptr->manageServer(atoi(av[1]), av[2]);
+    } catch (std::exception& e) {
+        std::cout << e.what() << std::endl;
+    }
+    return 0;
 }

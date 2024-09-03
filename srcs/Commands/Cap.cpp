@@ -1,32 +1,14 @@
-#include "../../includes/Commands.hpp"
+#include "../../includes/Server.hpp"
 
-void Cap::cap(Client *client, const vector<string> commandParts)
+void Server::Cap(std::vector<std::string>& params, Client& cli)
 {
-    if (commandParts.size() < 2)
+    if (params[0] == "LS")
+        cli._isCap = HEX;
+    else if (params[0] == "BOT")
     {
-        client->send_reply(ERR_NEEDMOREPARAMS(client->get_nick_name(), "CAP"));
-        return;
-    }
-    string cap = commandParts.at(1);
-    if (cap == "LS" || cap == "ls" )
-    {
-        client->send_message("/PASS\n/USER\n/NICK\n/JOIN\n/PART\n/PRIVMSG\n/NOTICE\n/KICK\n/MODE\n/QUIT\n");
+        cli._isCap = BOT;
+        _botFd = cli._cliFd;
     }
     else
-    {
-        client->send_reply(ERR_INVALIDCAPCMD(client->get_nick_name()));
-    }
+        cli._isCap = NC;
 }
-/* -----------------------------
-cap   *
-nick  *
-pass   *
-notice*
-mode  *
-kick  *
-part  *
-join  *
-privmsg*
-quit  * 
-user  *
------------------------------*/

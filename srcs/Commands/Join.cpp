@@ -1,62 +1,123 @@
-#include "../../includes/Commands.hpp"
+#include "../../includes/Server.hpp"
 
-void Join::join(Client* client, vector<string> commandParts, Server* srv)
+void Server::Join(std::vector<std::string>& params, Client& cli)
 {
-    if (commandParts.size() < 2)
+    if (cli._passChecked == 0)
     {
-        client->send_reply(ERR_NEEDMOREPARAMS(client->get_nick_name(), "JOIN"));
+        passChecker(cli);
         return;
     }
-    string channel = commandParts.at(1);
-    if (!channel.empty())
-        joinChannel(client, channel, commandParts, srv); 
-}
 
-void Join::joinChannel(Client* client, string channelName, vector<string> commandParts, Server* srv)
-{
-    string channelPass;
-    if (channelName.empty())
+    if (params.empty())
     {
-        client->send_reply(ERR_NOSUCHCHANNEL(client->get_nick_name(), channelName));
+        Utils::writeMessage(cli._cliFd, ERR_NEEDMOREPARAMS(cli._nick, "JOIN"));
         return;
     }
-    if (commandParts.size() == 2)
-        channelPass = "";
-    else
-        channelPass = commandParts.at(2);
-    if (channelName.size() < 2 || channelName.at(0) != '#')
+
+    std::vector<std::string> channels;
+    std::string keys = "";
+    
+    std::stringstream ss(params[0]);
+    std::string item;
+    while (std::getline(ss, item, ','))
     {
-        client->send_reply(ERR_NOSUCHCHANNEL(client->get_nick_name(), channelName));
-        return;
+        channels.push_back(item);
     }
-    Channel* channel;
-    if (srv->channel_exists(channelName))
+
+    if (params.size() == 2)
     {
-        channel = srv->get_channel(channelName);
-        if (channel->is_user_on_channel(client))
+        keys = params[1];
+    }
+
+    for (size_t i = 0; i < channels.size(); ++i)
+    {
+        std::string chan = channels[i];
+        std::string key = "";
+        
+        if (!keys.empty())
         {
-            client->send_reply(ERR_USERONCHANNEL(client->get_nick_name(), channelName));
+            std::stringstream keyStream(keys);
+            std::string keyItem;
+            std::getline(keyStream, keyItem, ',');
+            if (i == 0 || keyStream.eof())
+            {
+                key = keyItem;
+            }
+        }
+
+        if (chan.empty())
+        {
+            Utils::writeMessage(cli._cliFd, ERR_NEEDMOREPARAMS(cli._nick, "JOIN"));
             return;
         }
-        else if (channel->get_channel_key() != channelPass)
+
+        if (chan[0] != '#' && chan[0] != '&')
         {
-            client->send_reply(ERR_BADCHANNELKEY(client->get_nick_name(), channelName));
+            Utils::writeMessage(cli._cliFd, ERR_INVCHANNAME);
             return;
         }
-        else if (channel->get_user_limit() <= channel->get_channel_client_count())
+
+        if (clientIsInThere(cli, chan) == 0)
         {
-            client->send_reply(ERR_CHANNELISFULL(client->get_nick_name(), channelName));
-            return;
+            if (!cli._nick.empty())
+            {
+                int isThere = 0;
+                for (chanIt it = _channels.begin(); it != _channels.end(); ++it)
+                {
+                    if (it->_name == chan)
+                    {
+                        if (it->_key == key)
+                        {
+                            if (it->_userLimit != 0 && it->_channelClients.size() >= it->_userLimit)
+                            {
+                                Utils::writeMessage(cli._cliFd, ERR_CHANNELISFULL(cli._nick, chan));
+                                return;
+                            }
+                            it->_channelClients.push_back(cli);
+                            it->_opNick = it->_channelClients[0]._nick;
+                            Utils::writeMessage(cli._cliFd, RPL_JOIN(cli._nick, cli._ip, chan));
+                            std::cout << PURPLE << "Client " << cli._nick << " has entered \'" << chan << "\'" << RESET << std::endl;
+                            showRightGui(cli, *it);
+                        }
+                        else
+                        {
+                            Utils::writeMessage(cli._cliFd, ERR_BADCHANNELKEY(cli._nick, chan));
+                        }
+                        isThere = 1;
+                        break;
+                    }
+                }
+                if (isThere == 0)
+                {
+                    Channel tmp;
+                    tmp._name = chan;
+                    if (!key.empty())
+                    {
+                        tmp._key = key;
+                    }
+                    tmp._channelClients.push_back(cli);
+                    tmp._opNick = tmp._channelClients[0]._nick;
+                    _channels.push_back(tmp);
+                    Utils::writeMessage(cli._cliFd, RPL_JOIN(cli._nick, cli._ip, chan));
+                    if (!key.empty())
+                    {
+                        std::cout << PURPLE << "Channel " << chan << " created with " << key << RESET << std::endl;
+                    }
+                    else
+                    {
+                        std::cout << PURPLE << "Channel " << chan << " created" << RESET << std::endl;
+                    }
+                    showRightGui(cli, tmp);
+                }
+            }
+            else
+            {
+                Utils::writeMessage(cli._cliFd, "Set your nick before!\r\n");
+            }
+        }
+        else
+        {
+            Utils::writeMessage(cli._cliFd, "You are already in this channel\r\n");
         }
     }
-    else
-    {
-        channel = new Channel(channelName, channelPass, client);
-        channel->set_channel_owner(client);
-        client->set_operator(true);
-        srv->add_channel(channel);
-        channel->set_no_external_messages(true);
-		channel->broadcast_message("MODE " + channel->get_channel_name() + " +n " + client->get_nick_name());
-    }
-    client->join(channel);
 }

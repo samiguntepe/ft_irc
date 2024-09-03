@@ -1,52 +1,34 @@
-#include "../../includes/Commands.hpp"
+#include "../../includes/Server.hpp"
 
-// USER komutunu işleyen fonksiyon
-void User::user(Client *client, vector<string> commandParts, Server *srv)
+void Server::User(std::vector<std::string>& params, Client& cli)
 {
-    if (!client || !srv)
+    if (cli._isCap == NC)
+        passChecker(cli);
+    if (params.size() < 4)
     {
-        write(2, "Error: client or srv is null\n", 29);
-        return;
+        Utils::writeMessage(cli._cliFd, ERR_NEEDMOREPARAMS(cli._nick, params[0]));
+        Utils::writeMessage(cli._cliFd, RPL_USERERROR(params[0]));
     }
-    if (client->is_registered())
+    else if (!cli._user.empty())
+        Utils::writeMessage(cli._cliFd, ERR_ALREADYREGISTRED);
+    else
     {
-        client->send_reply(ERR_ALREADYREGISTERED(client->get_nick_name()));
-        return;
-    }
-    if (commandParts.size() < 3)
-    {
-        client->send_reply(ERR_NEEDMOREPARAMS(client->get_nick_name(), "USER"));
-        return;
-    }
-    if (!client->get_valid_name(commandParts.at(1)) || !client->get_valid_name(commandParts.at(2)))
-    {
-        client->send_reply(ERR_ERRONEUSNICKNAME(client->get_nick_name(), commandParts.at(1)));
-        return;
-    }
-    std::string userName = commandParts.at(1);
-    std::string realName = commandParts.at(2);
-    const std::map<int, Client *> &clients = srv->get_all_clients();
-    for (std::map<int, Client *>::const_iterator it = clients.begin(); it != clients.end(); ++it)
-    {
-        const Client *regUser = it->second;
-        if (!regUser)
+        cli._user = params[0];
+        cli._host = params[1];
+        cli._ip = params[2];
+        if (params[3][0] != ':')
+            cli._realName = params[3];
+        else
         {
-            continue;
+            size_t i = 3;
+            while (i < params.size()) {
+                cli._realName += params[i];
+                if (i != params.size() - 1)
+                    cli._realName += " ";
+                ++i;
+            }
+            cli._realName.erase(0, 1);
         }
-        if (regUser != client && regUser->get_user_name() == userName)
-        {
-            client->send_message("This username is already in use");
-            return;
-        }
-    }
-    client->set_user_name(userName);
-    client->set_real_name(realName);
-    client->set_status(CLIENT_CONNECTED);
-    client->set_user_auth(true);
-    if (client->get_user_auth() == true)
-    {
-        Bot *bot = srv->get_bot();
-        if (bot)
-            bot->welcome_message(client->get_nick_name());
+        Utils::writeMessage(cli._cliFd, RPL_USERHOST(cli._user, cli._host, cli._ip, cli._realName));
     }
 }

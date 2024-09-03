@@ -1,54 +1,92 @@
-#include "../../includes/Commands.hpp"
+#include "../../includes/Server.hpp"
 
-void Mode::mode(Client *client, vector<string> commandParts, Server *srv)
+void Server::Mode(std::vector<std::string>& params, Client& cli)
 {
-    if (commandParts.size() < 2)
-    {
-        client->send_message(":" + client->get_host_name() + " 461 " + client->get_nick_name() + " MODE :Not enough parameters");
+    passChecker(cli);
+    if (params.size() == 1)
+        return;
+    if (params.size() < 1 || params.size() > 3) {
+        Utils::writeMessage(cli._cliFd, ERR_NEEDMOREPARAMS(cli._nick, params[0]));
+        return ;
+    }
+    if (!isChannelExist(params[0])) {
+        Utils::writeMessage(cli._cliFd, ERR_NOSUCHCHANNEL(cli._nick, params[0]));
         return;
     }
-    string atargetE = commandParts.at(1);
-    string mode = (commandParts.size() > 2) ? commandParts.at(2) : "";
-    string modeParams = "100";
-    if (atargetE.empty())
-    {
-        client->send_message(":" + client->get_host_name() + " 403 " + client->get_nick_name() + " " + atargetE + " :No such channel\r\n");
-        return;
-    }
-    else if (atargetE.at(0) == '#')
-    {
-        string atarget = atrim(atargetE);
-        Channel *channel = srv->get_channel(atarget);
-        if (!channel)
+    for (chanIt it = _channels.begin(); it != _channels.end(); ++it) {
+        if (it->_name == params[0])
         {
-            client->send_message(":" + client->get_host_name() + " 403 " + client->get_nick_name() + " " + atargetE + " :No such channel\r\n");
-            return;
-        }
-        if (mode.empty())
-            return;
-        if (mode.at(0) == '+')
-        {
-            if (commandParts.size() > 3)
-            {
-                modeParams = commandParts.at(3);
-                channel->set_up_mode_channel(channel, client, mode, modeParams);
+            if (it->_opNick != cli._nick) {
+                Utils::writeMessage(cli._cliFd, ERR_CHANOPRIVSNEEDED(cli._nick, params[0]));
+                return ;
             }
-            else
-                channel->set_up_mode_channel(channel, client, mode, modeParams);
-        }
-        else if (mode.at(0) == '-')
-        {
-            if (commandParts.size() > 3)
-            {
-                modeParams = commandParts.at(3);
-                channel->set_low_mode_channel(channel, client, mode, modeParams);
+            int flag = 0;
+            modesOp(it, params, &flag);
+            modesLimit(it, params, &flag);
+            modesKey(it, params, &flag);
+            if (!flag) {
+                Utils::writeMessage(cli._cliFd, ERR_UNKNOWNMODE(cli._nick, params[0], params[1]));
+                return ;
             }
-            else
-                channel->set_low_mode_channel(channel, client, mode, modeParams);
         }
-        else
-            client->send_message(":" + client->get_host_name() + " 501 " + client->get_nick_name() + " :Invalid MODE flag");
     }
-    else
-        client->send_message(":" + client->get_host_name() + " 501 " + client->get_nick_name() + " :Invalid MODE flag");
+}
+
+void Server::modesOp(chanIt& it, std::vector<std::string>& params, int* flag)
+{
+    if (params[1] == "+o")
+    {
+        *flag = 1;
+        size_t flag2 = 0;
+        for (cliIt it2 = it->_channelClients.begin(); it2 != it->_channelClients.end(); ++it2) {
+            if (it2->_nick == params[2])
+            {
+                if (it2->_nick == it->_opNick)
+                    return ;
+                flag2 = 1;
+                size_t i;
+                for (i = 0; i < it->_channelClients.size(); ++i) {
+                    if (it->_channelClients[i]._nick == it2->_nick)
+                        break ;
+                }
+                Client tmp = it->_channelClients[i];
+                it->_channelClients[i] = it->_channelClients[0];
+                it->_channelClients[0] = tmp;
+                it->_opNick = it->_channelClients[0]._nick;
+                showRightGui(tmp, *it);
+                return ;
+            }
+        }
+        if (flag2 == 0) 
+        {
+            Utils::writeMessage(getOpFd(it->_opNick), "User is not in the channel\r\n");
+            return ;
+        }
+    }
+}
+
+void Server::modesLimit(chanIt& it, std::vector<std::string>& params, int* flag)
+{
+    if (params[1] != "+l")
+        return ;
+    *flag = 1;
+    if (params[1] == "+l" && params.size() == 3)
+        it->_userLimit = std::atoi(params[2].c_str());
+    else if (params[1] == "+l" && params.size() != 3)
+        std::cout << "Not enough paramaters for '+l' " << std::endl;
+    Utils::writeMessage(getOpFd(it->_opNick), RPL_MODE(it->_opNick, params[0], "+l", params[2]));
+    return ;
+}
+
+void Server::modesKey(chanIt& it, std::vector<std::string>& params, int* flag)
+{
+    if (params[1] != "+k" && params[1] != "-k")
+        return ;
+    if (params[1] == "+k" && params.size() != 3)
+        return ;
+    if(params[1] == "+k")
+        it->_key = params[2];
+    else if (params[1] == "-k")
+        it->_key = "";
+    *flag = 1;
 }

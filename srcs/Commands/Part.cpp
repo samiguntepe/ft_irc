@@ -1,54 +1,52 @@
-#include "../../includes/Commands.hpp"
+#include "../../includes/Server.hpp"
 
-void Part::part(Client* client, vector<string> commandParts, Server* srv)
+void Server::Part(std::vector<std::string>& params, Client& cli)
 {
-    if (commandParts.size() < 2)
-    {
-        client->send_message( ":" + client->get_host_name() + " 461 " + client->get_nick_name() + " PART : Not enough parameters" );
-        return;
-    }
-    string target = commandParts.at(1);
-    if (target.find(',') == string::npos)
-        partChannel(client, target, srv);
-    else
-    {
-        istringstream iss(target);
-        string channelName;
-        while (getline(iss, channelName, ','))
-            partChannel(client, channelName, srv);
-    }
-}
+    passChecker(cli);
 
-void Part::partChannel(Client* client, string channelName, Server* srv)
-{
-    if (channelName.empty() || channelName.at(0) != '#')
-    {
-      	client->send_message( ":" + client->get_host_name() + " 403 " + client->get_nick_name() + " " + channelName + " :No such channel" );
+    if (params.size() > 2 || params[0].empty()) {
+        Utils::writeMessage(cli._cliFd, ERR_NEEDMOREPARAMS(cli._nick, params[0]));
         return;
     }
-    Channel* channel = srv->get_channel(channelName);
-    if (!channel)
-    {
-     	client->send_message( ":" + client->get_host_name() + " 403 " + client->get_nick_name() + " " + channelName + " :No such channel" );
-        return;
-    }
-    if (!channel->is_user_on_channel(client))
-    {
-        client->send_message( ":" + client->get_host_name() + " 442 " + client->get_nick_name() + " " + channelName + " :You're not on that channel" );
-        return;
-    }
-    channel->remove_user_from_channel(client);
-    client->remove_channel(channel);
 
-    string message = ":" + client->get_prefix() + " PART " + channelName + "\n";
-    channel->broadcast_message(message, client);
+    std::vector<std::string> channels;
+    std::stringstream ss(params[0]);
+    std::string item;
+    while (std::getline(ss, item, ',')) {
+        channels.push_back(item);
+    }
 
-   	client->send_message( "You left the channel " + channelName );
-    if (channel->get_channel_client_count() == 0 && srv->channel_exists(channelName))
-    {
-   		string channelName = channel->get_channel_name();
-		string message = "Channel " + channelName + " is empty, deleting.\n";
-		write( 1, message.c_str(), message.length() );
-		srv->remove_channel(channelName);
+    for (size_t i = 0; i < channels.size(); ++i) {
+        std::string chan = channels[i];
+
+        if (isChannelExist(chan)) {
+            for (chanIt it = _channels.begin(); it != _channels.end(); ++it) {
+                if (it->_name == chan) {
+                    bool clientFound = false;
+                    for (cliIt it2 = it->_channelClients.begin(); it2 != it->_channelClients.end(); ++it2) {
+                        if (it2->_nick == cli._nick) {
+                            Utils::writeMessage(cli._cliFd, RPL_PART(cli._nick, chan));
+                            it->_channelClients.erase(it2);
+                            if (it->_channelClients.size() > 0)
+                                it->_opNick = it->_channelClients[0]._nick;
+                            std::cout << RED << "Client " << cli._nick << " has left channel " << chan << RESET << std::endl;
+                            clientFound = true;
+                            break;
+                        }
+                    }
+                    if (clientFound) {
+                        if (it->_channelClients.size() == 0) {
+                            std::cout << RED << "Channel " << it->_name << " is deleted" << RESET << std::endl;
+                            _channels.erase(it);
+                        } else {
+                            showRightGui(cli, *it);
+                        }
+                        break;
+                    }
+                }
+            }
+        } else {
+            Utils::writeMessage(cli._cliFd, ERR_NOSUCHCHANNEL(cli._nick, chan));
+        }
     }
 }
