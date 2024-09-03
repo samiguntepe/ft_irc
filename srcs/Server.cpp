@@ -6,7 +6,7 @@ Server::Server(): _botFd(0), _fdCount(0), flag(false) {}
 
 Server::~Server() {}
 
-Server* Server::getInstance()
+Server* Server::get_instance()
 {
     try {
         if (singleton == NULL) 
@@ -19,7 +19,7 @@ Server* Server::getInstance()
     }
 }
 
-void Server::signalHandler(int number)
+void Server::signal_handler(int number)
 {
     std::cout << RED << "\nServer is shutting down!" << RESET << std::endl;
     delete singleton;
@@ -27,7 +27,7 @@ void Server::signalHandler(int number)
     exit(number);
 }
 
-void Server::initCommands()
+void Server::init_commands()
 {
     _commands["PASS"] = &Server::Pass;
     _commands["NICK"] = &Server::Nick;
@@ -46,7 +46,7 @@ void Server::initCommands()
     _commands["bot"] = &Server::Bot;
 }
 
-void Server::createSocket()
+void Server::create_socket()
 {
     if ((_serverFd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         throw std::runtime_error("Socket");
@@ -56,7 +56,7 @@ void Server::createSocket()
         throw std::runtime_error("Setsockopt");
 }
 
-void Server::bindSocket(size_t const & port)
+void Server::bind_socket(size_t const & port)
 {
     struct sockaddr_in server_addr;
 
@@ -72,7 +72,7 @@ void Server::bindSocket(size_t const & port)
         throw std::runtime_error("Listen");
 }
 
-void Server::acceptRequest()
+void Server::accept_request()
 {
     Client tmp;
     sockaddr_in cliAddr;
@@ -128,7 +128,7 @@ std::map<std::string, std::vector<std::string> > Server::getParams(std::string c
     return ret;
 }
 
-void Server::commandHandler(std::string& str, Client& cli)
+void Server::command_handler(std::string& str, Client& cli)
 {
     std::map<std::string, std::vector<std::string> > params = getParams(str);
 
@@ -136,7 +136,7 @@ void Server::commandHandler(std::string& str, Client& cli)
     {
         if (_commands.find(it->first) == _commands.end())
         {
-            Utils::writeMessage(cli._cliFd, "421 : " + it->first + " :Unknown command!\r\n");
+            Utils::write_message(cli._cliFd, "421 : " + it->first + " :Unknown command!\r\n");
             std::cout << RED << it->first << " command not found!" << RESET << std::endl;
         }
         else
@@ -144,7 +144,7 @@ void Server::commandHandler(std::string& str, Client& cli)
     }
 }
 
-void Server::readEvent(int* state)
+void Server::read_event(int* state)
 {
     for (cliIt it = _clients.begin(); it != _clients.end(); ++it)
     {
@@ -176,7 +176,7 @@ void Server::readEvent(int* state)
                     it->_buffer = it->_buffer + tmp;
                 }
                 std::cout << YELLOW << it->_buffer << RESET;
-                commandHandler(it->_buffer, *it);
+                command_handler(it->_buffer, *it);
                 it->_buffer.clear();
             }
             break;
@@ -184,7 +184,7 @@ void Server::readEvent(int* state)
     }
 }
 
-void Server::initFds()
+void Server::init_fds()
 {
     FD_ZERO(&_readFds);
     FD_ZERO(&_writeFds);
@@ -193,13 +193,13 @@ void Server::initFds()
     FD_SET(_serverFd, &_readFds);
 }
 
-void Server::writeEvent()
+void Server::write_event()
 {
     for (cliIt it = _clients.begin(); it != _clients.end(); ++it)
     {
         if (FD_ISSET(it->_cliFd, &_writeFdsSup))
         {
-            int writed = write(it->_cliFd, it->_messageBox[0].c_str(), it->_messageBox[0].size());
+			int writed = send(it->_cliFd, it->_messageBox[0].c_str(), it->_messageBox[0].size(), 0);
             it->_messageBox.erase(it->_messageBox.begin());
             if (it->_messageBox.empty())
                 FD_CLR(it->_cliFd, &_writeFds);
@@ -218,7 +218,7 @@ void Server::run()
 {
     int state = 0;
 
-    initFds();
+    init_fds();
     while (1)
     {
         _readFdsSup = _readFds;
@@ -227,29 +227,29 @@ void Server::run()
         if (state == 0)
             throw std::runtime_error("Select");
         if (FD_ISSET(_serverFd, &_readFdsSup)) {
-            acceptRequest();
+            accept_request();
             state = 0; continue;
         }
         if (state) {
-            readEvent(&state);
+            read_event(&state);
             if (state == 0)
                 continue;
         }
         if (state) {
-            writeEvent();
+            write_event();
             state = 0;
             continue;
         }
     }
 }
 
-void Server::manageServer(size_t const& port, std::string const& password)
+void Server::manage_server(size_t const& port, std::string const& password)
 {
-    setPort(port);
-    setPassword(password);
-    initCommands();
-    createSocket();
-    bindSocket(port);
-    printStatus();
+    set_port(port);
+    set_password(password);
+    init_commands();
+    create_socket();
+    bind_socket(port);
+    print_status();
     run();
 }

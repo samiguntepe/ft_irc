@@ -1,6 +1,6 @@
 #include "../includes/Server.hpp"
 
-int Server::isNickExist(std::string const& nick)
+int Server::is_nick_exist(std::string const& nick)
 {
     for (cliIt it = _clients.begin(); it != _clients.end(); ++it) {
         if (it->_nick == nick)
@@ -9,7 +9,7 @@ int Server::isNickExist(std::string const& nick)
     return 0;
 }
 
-void Server::kickClient(cliIt& it)
+void Server::kick_client(cliIt& it)
 {
     std::cout << RED << "Client " << it->_cliFd - 3  << " disconnected!" << RESET << std::endl;
     FD_CLR(it->_cliFd, &_readFds);
@@ -18,7 +18,7 @@ void Server::kickClient(cliIt& it)
     _clients.erase(it);
 }
 
-void Server::passChecker(Client& client)
+void Server::pass_checker(Client& client)
 {
     if (client._passChecked == 0)
     {
@@ -26,15 +26,15 @@ void Server::passChecker(Client& client)
         for (cliIt it = _clients.begin(); it != _clients.end(); ++it) {
             if (client._cliFd == it->_cliFd)
             {
-                Utils::writeMessage(client._cliFd, ERR_PASSWDMISMATCH);
-                kickClient(it);
+                Utils::write_message(client._cliFd, ERR_PASSWDMISMATCH);
+                kick_client(it);
                 break;
             }
         }
     }
 }
 
-void Server::getAfterColon(std::vector<std::string>& params)
+void Server::get_after_colon(std::vector<std::string>& params)
 {
     params[1].erase(0, 1);
     for (size_t i = 2; i < params.size(); ++i)
@@ -43,7 +43,7 @@ void Server::getAfterColon(std::vector<std::string>& params)
     }
 }
 
-Channel& Server::getChannel(std::string const& channelName)
+Channel& Server::get_channel(std::string const& channelName)
 {
     chanIt it;
     for (it = _channels.begin(); it != _channels.end(); ++it)
@@ -55,7 +55,7 @@ Channel& Server::getChannel(std::string const& channelName)
     return *it;
 }
 
-int Server::isChannelExist(std::string const& channelName)
+int Server::is_channel_exist(std::string const& channelName)
 {
     for (chanIt it = _channels.begin(); it != _channels.end(); ++it)
     {
@@ -65,7 +65,7 @@ int Server::isChannelExist(std::string const& channelName)
     return 0;
 }
 
-int Server::clientIsInThere(Client& client, std::string const& chanName)
+int Server::client_is_in_there(Client& client, std::string const& chanName)
 {
     for (chanIt it = _channels.begin(); it != _channels.end(); ++it)
     {
@@ -81,7 +81,7 @@ int Server::clientIsInThere(Client& client, std::string const& chanName)
     return (0);
 }
 
-int Server::getOpFd(std::string const& opName)
+int Server::get_op_fd(std::string const& opName)
 {
     for (cliIt it = _clients.begin(); it != _clients.end(); ++it)
     {
@@ -91,31 +91,31 @@ int Server::getOpFd(std::string const& opName)
     return (0);
 }
 
-void Server::showRightGui(Client &cli, Channel &tmp)
+void Server::show_right_gui(Client &cli, Channel &tmp)
 {
     std::string msg;
     if (tmp._name.empty())
         return;
     for(std::vector<Client>::iterator it = tmp._channelClients.begin() ; it != tmp._channelClients.end(); ++it)
     {
-        if (it->_cliFd == getOpFd(tmp._opNick))
+        if (it->_cliFd == get_op_fd(tmp._opNick))
             msg += "@";
         msg += (*it)._nick + " ";
     }
-    Utils::writeAllMessage(tmp.getFds(), RPL_NAMREPLY(cli._nick, tmp._name, msg));
+    Utils::write_all_message(tmp.getFds(), RPL_NAMREPLY(cli._nick, tmp._name, msg));
 }
 
-void Server::setPort(size_t const& port)
+void Server::set_port(size_t const& port)
 {
     _port = port;
 }
 
-void Server::setPassword(std::string const& password)
+void Server::set_password(std::string const& password)
 {
     _password = password;
 }
 
-void Server::printStatus()
+void Server::print_status()
 {
     std::cout << CYAN << "Server running on this pc " << RESET << std::endl;
     std::cout << CYAN << "Password: " << _password << RESET << std::endl;

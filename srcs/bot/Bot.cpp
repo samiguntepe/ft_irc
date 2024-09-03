@@ -2,7 +2,7 @@
 
 Bot* Bot::singleton = NULL;
 
-Bot* Bot::getInstance()
+Bot* Bot::get_instance()
 {
     try {
         if (singleton == NULL) 
@@ -22,17 +22,17 @@ Bot::~Bot()
     close(_fd);
 }
 
-void Bot::setPasword(std::string const& password)
+void Bot::set_pasword(std::string const& password)
 {
     _password = password;
 }
 
-void Bot::setPort(int port)
+void Bot::set_port(int port)
 {
     _port = port;
 }
 
-void Bot::createSocket()
+void Bot::create_socket()
 {
     if ((_fd = socket(AF_INET, SOCK_STREAM, 0)) <= 0) 
         throw std::runtime_error("socket() failed");
@@ -59,7 +59,7 @@ void Bot::run()
         if (!login)
         {
             std::string msg = "CAP BOT\nPASS " + _password + "\nNICK " + RED "LAZ ZİYA BOT\n";
-            Utils::writeMessage(_fd, msg);
+            Utils::write_message(_fd, msg);
             login = 1;
         }
         char buffer[1024];
@@ -82,15 +82,15 @@ void Bot::run()
             while (ss >> ctr)
                 msg += " " + ctr;
             std::string writeCmd = "NOTICE * " + tmp + " " + msg + "\r\n";
-            Utils::writeMessage(_fd, writeCmd);
+            Utils::write_message(_fd, writeCmd);
         }
     }
 }
 
-void Bot::manageBot(int port, std::string const& password)
+void Bot::manage_bot(int port, std::string const& password)
 {
-    setPasword(password);
-    setPort(port);
-    createSocket();
+    set_pasword(password);
+    set_port(port);
+    create_socket();
     run();
 }

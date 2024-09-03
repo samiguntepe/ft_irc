@@ -2,10 +2,10 @@
 
 void Server::Part(std::vector<std::string>& params, Client& cli)
 {
-    passChecker(cli);
+    pass_checker(cli);
 
     if (params.size() > 2 || params[0].empty()) {
-        Utils::writeMessage(cli._cliFd, ERR_NEEDMOREPARAMS(cli._nick, params[0]));
+        Utils::write_message(cli._cliFd, ERR_NEEDMOREPARAMS(cli._nick, params[0]));
         return;
     }
 
@@ -19,13 +19,13 @@ void Server::Part(std::vector<std::string>& params, Client& cli)
     for (size_t i = 0; i < channels.size(); ++i) {
         std::string chan = channels[i];
 
-        if (isChannelExist(chan)) {
+        if (is_channel_exist(chan)) {
             for (chanIt it = _channels.begin(); it != _channels.end(); ++it) {
                 if (it->_name == chan) {
                     bool clientFound = false;
                     for (cliIt it2 = it->_channelClients.begin(); it2 != it->_channelClients.end(); ++it2) {
                         if (it2->_nick == cli._nick) {
-                            Utils::writeMessage(cli._cliFd, RPL_PART(cli._nick, chan));
+                            Utils::write_message(cli._cliFd, RPL_PART(cli._nick, chan));
                             it->_channelClients.erase(it2);
                             if (it->_channelClients.size() > 0)
                                 it->_opNick = it->_channelClients[0]._nick;
@@ -39,14 +39,14 @@ void Server::Part(std::vector<std::string>& params, Client& cli)
                             std::cout << RED << "Channel " << it->_name << " is deleted" << RESET << std::endl;
                             _channels.erase(it);
                         } else {
-                            showRightGui(cli, *it);
+                            show_right_gui(cli, *it);
                         }
                         break;
                     }
                 }
             }
         } else {
-            Utils::writeMessage(cli._cliFd, ERR_NOSUCHCHANNEL(cli._nick, chan));
+            Utils::write_message(cli._cliFd, ERR_NOSUCHCHANNEL(cli._nick, chan));
         }
     }
 }

@@ -1,19 +1,20 @@
 #include "../includes/Utils.hpp"
 
-void Utils::writeMessage(int socket, std::string const& message)
+void Utils::write_message(int socket, std::string const& message)
 {
-    if ((write(socket, message.c_str(), message.length())) < 0)
-        std::cout << "Message cannot send!" << std::endl;
+	if ((send(socket, message.c_str(), message.length(), 0)) < 0)
+		std::cout << "Message cannot be sent!" << std::endl;
+	
 }
 
-void Utils::writeAllMessage(std::vector<int> const& fds, std::string const& message)
+void Utils::write_all_message(std::vector<int> const& fds, std::string const& message)
 {
     for (std::vector<int>::const_iterator it = fds.begin(); it != fds.end(); ++it) {
-        writeMessage(*it, message);
+        write_message(*it, message);
     }
 }
 
-std::string Utils::intToString(int n)
+std::string Utils::int_to_string(int n)
 {
     std::stringstream ss;
     ss << n;
@@ -21,7 +22,7 @@ std::string Utils::intToString(int n)
     return str;
 }
 
-int Utils::portIsValid(std::string const& port)
+int Utils::port_is_valid(std::string const& port)
 {
     for (size_t i = 0; i < port.size(); ++i)
         if (!isdigit(port[i]))

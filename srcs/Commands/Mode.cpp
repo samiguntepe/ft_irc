@@ -2,37 +2,37 @@
 
 void Server::Mode(std::vector<std::string>& params, Client& cli)
 {
-    passChecker(cli);
+    pass_checker(cli);
     if (params.size() == 1)
         return;
     if (params.size() < 1 || params.size() > 3) {
-        Utils::writeMessage(cli._cliFd, ERR_NEEDMOREPARAMS(cli._nick, params[0]));
+        Utils::write_message(cli._cliFd, ERR_NEEDMOREPARAMS(cli._nick, params[0]));
         return ;
     }
-    if (!isChannelExist(params[0])) {
-        Utils::writeMessage(cli._cliFd, ERR_NOSUCHCHANNEL(cli._nick, params[0]));
+    if (!is_channel_exist(params[0])) {
+        Utils::write_message(cli._cliFd, ERR_NOSUCHCHANNEL(cli._nick, params[0]));
         return;
     }
     for (chanIt it = _channels.begin(); it != _channels.end(); ++it) {
         if (it->_name == params[0])
         {
             if (it->_opNick != cli._nick) {
-                Utils::writeMessage(cli._cliFd, ERR_CHANOPRIVSNEEDED(cli._nick, params[0]));
+                Utils::write_message(cli._cliFd, ERR_CHANOPRIVSNEEDED(cli._nick, params[0]));
                 return ;
             }
             int flag = 0;
-            modesOp(it, params, &flag);
-            modesLimit(it, params, &flag);
-            modesKey(it, params, &flag);
+            modes_op(it, params, &flag);
+            modes_limit(it, params, &flag);
+            modes_key(it, params, &flag);
             if (!flag) {
-                Utils::writeMessage(cli._cliFd, ERR_UNKNOWNMODE(cli._nick, params[0], params[1]));
+                Utils::write_message(cli._cliFd, ERR_UNKNOWNMODE(cli._nick, params[0], params[1]));
                 return ;
             }
         }
     }
 }
 
-void Server::modesOp(chanIt& it, std::vector<std::string>& params, int* flag)
+void Server::modes_op(chanIt& it, std::vector<std::string>& params, int* flag)
 {
     if (params[1] == "+o")
     {
@@ -53,19 +53,19 @@ void Server::modesOp(chanIt& it, std::vector<std::string>& params, int* flag)
                 it->_channelClients[i] = it->_channelClients[0];
                 it->_channelClients[0] = tmp;
                 it->_opNick = it->_channelClients[0]._nick;
-                showRightGui(tmp, *it);
+                show_right_gui(tmp, *it);
                 return ;
             }
         }
         if (flag2 == 0) 
         {
-            Utils::writeMessage(getOpFd(it->_opNick), "User is not in the channel\r\n");
+            Utils::write_message(get_op_fd(it->_opNick), "User is not in the channel\r\n");
             return ;
         }
     }
 }
 
-void Server::modesLimit(chanIt& it, std::vector<std::string>& params, int* flag)
+void Server::modes_limit(chanIt& it, std::vector<std::string>& params, int* flag)
 {
     if (params[1] != "+l")
         return ;
@@ -74,11 +74,11 @@ void Server::modesLimit(chanIt& it, std::vector<std::string>& params, int* flag)
         it->_userLimit = std::atoi(params[2].c_str());
     else if (params[1] == "+l" && params.size() != 3)
         std::cout << "Not enough paramaters for '+l' " << std::endl;
-    Utils::writeMessage(getOpFd(it->_opNick), RPL_MODE(it->_opNick, params[0], "+l", params[2]));
+    Utils::write_message(get_op_fd(it->_opNick), RPL_MODE(it->_opNick, params[0], "+l", params[2]));
     return ;
 }
 
-void Server::modesKey(chanIt& it, std::vector<std::string>& params, int* flag)
+void Server::modes_key(chanIt& it, std::vector<std::string>& params, int* flag)
 {
     if (params[1] != "+k" && params[1] != "-k")
         return ;

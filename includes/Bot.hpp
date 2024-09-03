@@ -19,12 +19,12 @@ class Bot
 
         Bot(): _fd(0), _port(0), _password("") {};
         ~Bot();
-        void setPort(int);
-        void setPasword(std::string const&);
-        void createSocket();
+        void set_port(int);
+        void set_pasword(std::string const&);
+        void create_socket();
         void run();
         void execute(std::string const&);
     public:
-        static Bot *getInstance();
-        void manageBot(int, std::string const&);
+        static Bot *get_instance();
+        void manage_bot(int, std::string const&);
 };

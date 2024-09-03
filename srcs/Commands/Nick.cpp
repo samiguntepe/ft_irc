@@ -1,20 +1,20 @@
 #include "../../includes/Server.hpp"
 
-int Server::CheckNickDepends(std::vector<std::string>& params, Client& cli)
+int Server::check_nick_depends(std::vector<std::string>& params, Client& cli)
 {
     if (cli._isCap == NC) {
-        passChecker(cli);
+        pass_checker(cli);
     }
-    if (!(params.size() == 1 && !isNickExist(params[0]) && !params[0].empty() && params[0].size() <= 9))
+    if (!(params.size() == 1 && !is_nick_exist(params[0]) && !params[0].empty() && params[0].size() <= 9))
     {
         if (params.size() != 1)
-            Utils::writeMessage(cli._cliFd, ERR_NEEDMOREPARAMS(cli._nick, params[0]));
+            Utils::write_message(cli._cliFd, ERR_NEEDMOREPARAMS(cli._nick, params[0]));
         else if (params[0].size() > 9)
-            Utils::writeMessage(cli._cliFd, ERR_NONICKNAMEGIVEN);
+            Utils::write_message(cli._cliFd, ERR_NONICKNAMEGIVEN);
         else if (params[0].empty())
-            Utils::writeMessage(cli._cliFd, ERR_NICKNAMEEMPTY(cli._nick));
+            Utils::write_message(cli._cliFd, ERR_NICKNAMEEMPTY(cli._nick));
         else
-            Utils::writeMessage(cli._cliFd, ERR_NICKNAMEINUSE(params[0]));
+            Utils::write_message(cli._cliFd, ERR_NICKNAMEINUSE(params[0]));
         return (0);
     }
     return (1);
@@ -22,7 +22,7 @@ int Server::CheckNickDepends(std::vector<std::string>& params, Client& cli)
 
 void Server::Nick(std::vector<std::string>& params, Client& cli)
 {
-    if (!CheckNickDepends(params, cli))
+    if (!check_nick_depends(params, cli))
         return ;
     std::string oldNick = cli._nick;
     cli._nick = params[0];
@@ -37,8 +37,8 @@ void Server::Nick(std::vector<std::string>& params, Client& cli)
                 break;
             }
         }
-        Utils::writeMessage(cli._cliFd, RPL_NICK(oldNick, cli._user, cli._ipAddr, params[0]));
-        showRightGui(cli, *it);
+        Utils::write_message(cli._cliFd, RPL_NICK(oldNick, cli._user, cli._ipAddr, params[0]));
+        show_right_gui(cli, *it);
     }
-    Utils::writeMessage(cli._cliFd, RPL_NICK(oldNick, cli._user, cli._ipAddr, params[0]));
+    Utils::write_message(cli._cliFd, RPL_NICK(oldNick, cli._user, cli._ipAddr, params[0]));
 }

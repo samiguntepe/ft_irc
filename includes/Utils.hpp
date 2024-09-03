@@ -54,9 +54,9 @@
 class Utils
 {
     public:
-        static void writeMessage(int, std::string const&);
-        static void writeAllMessage(std::vector<int> const&, std::string const&);
-        static std::string intToString(int);
-        static int portIsValid(std::string const& port);
+        static void write_message(int, std::string const&);
+        static void write_all_message(std::vector<int> const&, std::string const&);
+        static std::string int_to_string(int);
+        static int port_is_valid(std::string const& port);
         static std::string welcome();
 };

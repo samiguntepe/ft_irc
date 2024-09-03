@@ -24,7 +24,7 @@ void Server::Quit(std::vector<std::string>& params, Client& cli)
             if (itChan->_channelClients.size() > 0)
             {
                 itChan->_opNick = itChan->_channelClients[0]._nick;
-                showRightGui(cli, *itChan);
+                show_right_gui(cli, *itChan);
             }
             else if (itChan->_channelClients.size() == 0)
             {
@@ -33,8 +33,8 @@ void Server::Quit(std::vector<std::string>& params, Client& cli)
                 if (_channels.size() == 0)
                 {
                     _channels.clear();
-                    Utils::writeMessage(cli._cliFd, RPL_QUIT(cli._nick, params[0].c_str()));
-                    kickClient(baseIt);
+                    Utils::write_message(cli._cliFd, RPL_QUIT(cli._nick, params[0].c_str()));
+                    kick_client(baseIt);
                     return;
                 }
                 itChan = _channels.begin();
@@ -45,6 +45,6 @@ void Server::Quit(std::vector<std::string>& params, Client& cli)
         if (flag != 1)
             ++itChan;
     }
-    Utils::writeMessage(cli._cliFd, RPL_QUIT(cli._nick, params[0].c_str()));
-    kickClient(baseIt);
+    Utils::write_message(cli._cliFd, RPL_QUIT(cli._nick, params[0].c_str()));
+    kick_client(baseIt);
 }
