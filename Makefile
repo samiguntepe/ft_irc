@@ -1,6 +1,7 @@
 NAME	= ircserv
 CC		= c++
 CFLAGS	= -Wall -Wextra -Werror -std=c++98
+SRC_DIR = srcs
 SRCS	= ./srcs/Channel.cpp \
 		./srcs/main.cpp \
 		./srcs/Server.cpp \
@@ -22,6 +23,7 @@ SRCS	= ./srcs/Channel.cpp \
 		./srcs/commands/User.cpp \
 		./srcs/commands/Who.cpp
 
+
 OBJS    = $(SRCS:.cpp=.o)
 GREEN	= \033[0;32m
 RED		= \033[0;31m
@@ -40,6 +42,10 @@ $(NAME): $(OBJS)
 	@printf "$(CLEAR_LINE)$(MAGENTA)⌛ Compiling $<\r$(CODE)"
 	@$(CC) $(CFLAGS) -c $< -o $@
 
+bonus:
+	@$(CC) $(CFLAGS) $(SRC_DIR)/bot/*.cpp $(SRC_DIR)/Utils.cpp $^ -o bot
+	@echo "\n\033[32m   Bot Ready... \033[0m\n  "
+
 clean:
 	@rm -rf $(OBJS)
 	@echo "$(RED)🗑️  Removed object files$(CODE)"
@@ -47,6 +53,7 @@ clean:
 fclean: clean
 	@rm -rf $(NAME)
 	@echo "$(RED)🗑️  Removed $(NAME)$(CODE)"
+	@rm -rf bot
 	
 re: fclean all
 

@@ -22,23 +22,22 @@ int Server::check_nick_depends(std::vector<std::string>& params, Client& cli)
 
 void Server::Nick(std::vector<std::string>& params, Client& cli)
 {
-    if (!check_nick_depends(params, cli))
-        return ;
-    std::string oldNick = cli._nick;
-    cli._nick = params[0];
+	if (!check_nick_depends(params, cli))
+		return ;
+	std::string oldNick = cli._nick;
+	cli._nick = params[0];
 
-    for (chanIt it = _channels.begin(); it != _channels.end(); ++it) {
-        for (cliIt cit = it->_channelClients.begin(); cit != it->_channelClients.end(); ++cit) {
-            if (oldNick == cit->_nick)
-            {
-                if (oldNick == it->_opNick)
-                    it->_opNick = params[0];
-                cit->_nick = params[0];
-                break;
-            }
-        }
-        Utils::write_message(cli._cliFd, RPL_NICK(oldNick, cli._user, cli._ipAddr, params[0]));
-        show_right_gui(cli, *it);
-    }
-    Utils::write_message(cli._cliFd, RPL_NICK(oldNick, cli._user, cli._ipAddr, params[0]));
+	for (chanIt it = _channels.begin(); it != _channels.end(); ++it) {
+		for (cliIt cit = it->_channelClients.begin(); cit != it->_channelClients.end(); ++cit) {
+			if (oldNick == cit->_nick)
+			{
+				if (oldNick == it->_opNick)
+					it->_opNick = params[0];
+				cit->_nick = params[0];
+				break;
+			}
+		}
+		show_right_gui(cli, *it);
+	}
+	Utils::write_message(cli._cliFd, RPL_NICK(oldNick, cli._user, cli._ipAddr, params[0]));
 }
