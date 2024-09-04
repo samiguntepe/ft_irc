@@ -117,7 +117,7 @@ void Server::set_password(std::string const& password)
 
 void Server::print_status()
 {
-    std::cout << CYAN << "Server running on this pc " << RESET << std::endl;
-    std::cout << CYAN << "Password: " << _password << RESET << std::endl;
-    std::cout << CYAN << "Port: " << _port << RESET << std::endl;
+    std::cout << YELLOW << "Server running on this pc " << RESET << std::endl;
+    std::cout << YELLOW << "Password: " << _password << RESET << std::endl;
+    std::cout << YELLOW << "Port: " << _port << RESET << std::endl;
 }

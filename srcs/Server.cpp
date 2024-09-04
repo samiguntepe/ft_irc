@@ -151,7 +151,7 @@ void Server::read_event(int* state)
         if (FD_ISSET(it->_cliFd, &_readFdsSup))
         {
             *state = 0;
-            int readed = read(it->_cliFd, _buffer, 1024);
+			int readed = recv(it->_cliFd, _buffer, 1024, 0);
             if (readed <= 0)
             {
                 std::vector<std::string> tmp;
