@@ -47,7 +47,7 @@ void Bot::create_socket()
     if (::connect(_fd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
         throw std::runtime_error("connect() failed");
 
-    std::cout << RED << "LAZ ZİYA " << BLUE << "Bot connected to server" << RESET << std::endl;
+    std::cout << RED << "JARVIS " << BLUE << "Bot connected to server" << RESET << std::endl;
 }
 
 void Bot::run()
