@@ -58,7 +58,7 @@ void Bot::run()
     {
         if (!login)
         {
-            std::string msg = "CAP BOT\nPASS " + _password + "\nNICK " + RED "LAZ ZİYA BOT\n";
+            std::string msg = "CAP BOT\nPASS " + _password + "\nNICK " + RED "JARVIS_BOT\n";
             Utils::write_message(_fd, msg);
             login = 1;
         }
